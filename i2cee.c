@@ -17,7 +17,7 @@ extern void _delay_ms(uint32_t);
 // PUBLIC FUNCTIONS
 // ------------------------------------------------------------------
 
-uint8_t i2cee_wr(uint8_t n, uint16_t adr, uint8_t* buf, uint8_t len)
+uint8_t i2cee_wr(const uint8_t n, uint32_t adr, uint8_t* buf, uint16_t len)
 {
 	if( len > 64 ) return 1;
 	
@@ -34,7 +34,7 @@ uint8_t i2cee_wr(uint8_t n, uint16_t adr, uint8_t* buf, uint8_t len)
 
 // ------------------------------------------------------------------
 
-uint8_t i2cee_rd(uint8_t n, uint16_t adr, uint8_t* buf, uint8_t len)
+uint8_t i2cee_rd(const uint8_t n, uint32_t adr, uint8_t* buf, uint16_t len)
 {
 	if( i2cee_wr(n, adr, 0, 0) ) return 1;
 	return i2c_rd(n, EE_I2C_ADR, buf, len);

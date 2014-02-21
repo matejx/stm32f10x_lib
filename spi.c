@@ -65,7 +65,7 @@ void spi_init(uint8_t SPIy, uint16_t brps)
 	
 	iotd.GPIO_Pin = pdef->pin_sck | pdef->pin_mosi;
 	iotd.GPIO_Speed = GPIO_Speed_50MHz;
-    iotd.GPIO_Mode = GPIO_Mode_AF_PP;
+	iotd.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(pdef->gpio, &iotd);
 	
 	iotd.GPIO_Pin = pdef->pin_nss;
@@ -73,11 +73,11 @@ void spi_init(uint8_t SPIy, uint16_t brps)
 	GPIO_Init(pdef->gpio, &iotd);
 	
 	iotd.GPIO_Pin = pdef->pin_miso;
-    iotd.GPIO_Mode = GPIO_Mode_IN_FLOATING;	
+	iotd.GPIO_Mode = GPIO_Mode_IN_FLOATING;	
 	GPIO_Init(pdef->gpio, &iotd);
 	
 	// NSS high
-    spi_cs(SPIy, 1);
+	spi_cs(SPIy, 1);
 
 	// SPI config
 	SPI_InitTypeDef sptd;
@@ -102,9 +102,9 @@ uint8_t spi_rw(uint8_t SPIy, const uint8_t d)
 {
 	struct SPI_DevDef* pdef = spi_get_pdef(SPIy);
 	
-    while (SPI_I2S_GetFlagStatus(pdef->spi, SPI_I2S_FLAG_TXE) == RESET);
-    SPI_I2S_SendData(pdef->spi, d);
-    while (SPI_I2S_GetFlagStatus(pdef->spi, SPI_I2S_FLAG_RXNE) == RESET);
+	while (SPI_I2S_GetFlagStatus(pdef->spi, SPI_I2S_FLAG_TXE) == RESET);
+	SPI_I2S_SendData(pdef->spi, d);
+	while (SPI_I2S_GetFlagStatus(pdef->spi, SPI_I2S_FLAG_RXNE) == RESET);
 	return SPI_I2S_ReceiveData(pdef->spi);
 }
 
@@ -123,7 +123,7 @@ void spi_putc(uint8_t SPIy, uint8_t* d)
 
 void spi_puts(uint8_t SPIy, char* s)
 {
-    spi_cs(SPIy, 0);
+	spi_cs(SPIy, 0);
 	while( *s ) {
 		*s = spi_rw(SPIy, *s);
 		s++;

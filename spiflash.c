@@ -40,7 +40,7 @@ uint8_t fls_waitready(const uint8_t n, uint16_t to_ms)
 
 // ------------------------------------------------------------------
 
-void fls_gets(const uint8_t n, const uint32_t adr, char* s, uint16_t len)
+uint8_t fls_rd(const uint8_t n, const uint32_t adr, uint8_t* s, uint16_t len)
 {
 	SPIFLS_SS_LOW;
 	
@@ -55,17 +55,8 @@ void fls_gets(const uint8_t n, const uint32_t adr, char* s, uint16_t len)
 	}
 
 	SPIFLS_SS_HIGH;	
-}
-
-// ------------------------------------------------------------------
-
-uint8_t fls_getc(const uint8_t n, const uint32_t adr)
-{
-	char c;
 	
-	fls_gets(n, adr, &c, 1);
-	
-	return c;
+	return 0;
 }
 
 // ------------------------------------------------------------------
@@ -104,7 +95,7 @@ void fls_we(const uint8_t n)
 
 // ------------------------------------------------------------------
 
-uint8_t fls_puts(const uint8_t n, const uint32_t adr, char* s, uint16_t len)
+uint8_t fls_wr(const uint8_t n, const uint32_t adr, uint8_t* s, uint16_t len)
 {
 	SPIFLS_SS_LOW;
 
@@ -121,13 +112,6 @@ uint8_t fls_puts(const uint8_t n, const uint32_t adr, char* s, uint16_t len)
 	SPIFLS_SS_HIGH;	
 	
 	return fls_waitready(n, 100);
-}
-
-// ------------------------------------------------------------------
-
-void fls_putc(const uint8_t n, const uint32_t adr, char c)
-{
-	fls_puts(n, adr, &c, 1);
 }
 
 // ------------------------------------------------------------------
@@ -194,59 +178,3 @@ uint32_t fls_id(const uint8_t n)
 }
 
 // ------------------------------------------------------------------
-
-uint16_t fls_status(const uint8_t n)
-{
-	// read status 1
-	SPIFLS_SS_LOW;
-	spi_rw(n, 0x05);
-	uint8_t s1 = spi_rw(n, 0);
-	SPIFLS_SS_HIGH;
-	
-	asm("nop\nnop\nnop\n");
-	
-	// read status 2
-	SPIFLS_SS_LOW;
-	spi_rw(n, 0x35);
-	uint8_t s2 = spi_rw(n, 0);
-	SPIFLS_SS_HIGH;
-
-	return (s1 * 0x100) + s2;
-}
-
-// ------------------------------------------------------------------
-
-void fls_clrstat(const uint8_t n)
-{
-	SPIFLS_SS_LOW;
-	
-	spi_rw(n, 1);
-	spi_rw(n, 0);
-	spi_rw(n, 0);
-
-	SPIFLS_SS_HIGH;
-	
-	fls_waitready(n, 10);
-}
-
-// ------------------------------------------------------------------
-
-uint8_t fls_empty(const uint8_t n, uint32_t fs)
-{
-	SPIFLS_SS_LOW;
-
-	spi_rw(n, 0x03);
-	spi_rw(n, 0);
-	spi_rw(n, 0);
-	spi_rw(n, 0);
-	
-	while( fs ) {
-		fs--;
-		if( 0xff != spi_rw(n, 0) ) break;
-		//wdt_reset();
-	}
-
-	SPIFLS_SS_HIGH;
-	
-	return (0 == fs);
-}

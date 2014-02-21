@@ -40,7 +40,7 @@ void spiee_init(uint8_t n)
 
 // ------------------------------------------------------------------
 
-void spiee_rd(uint8_t n, uint16_t adr, uint8_t* buf, uint16_t len)
+uint8_t spiee_rd(uint8_t n, uint32_t adr, uint8_t* buf, uint16_t len)
 {
 	SPIEE_CS_LOW;
 	
@@ -49,6 +49,8 @@ void spiee_rd(uint8_t n, uint16_t adr, uint8_t* buf, uint16_t len)
 	spi_putsn(n, (char*)buf, len);	
 	
 	SPIEE_CS_HIGH;
+	
+	return 0;
 }
 
 // ------------------------------------------------------------------
@@ -64,7 +66,7 @@ void spiee_wren(uint8_t n)
 
 // ------------------------------------------------------------------
 
-void spiee_wr(uint8_t n, uint16_t adr, uint8_t* buf, uint16_t len)
+uint8_t spiee_wr(uint8_t n, uint32_t adr, uint8_t* buf, uint16_t len)
 {
 	SPIEE_CS_LOW;
 	
@@ -77,6 +79,8 @@ void spiee_wr(uint8_t n, uint16_t adr, uint8_t* buf, uint16_t len)
 	while( spiee_rdsr(n) & 1 ) {
 		_delay_ms(1);
 	}
+	
+	return 0;
 }
 
 // ------------------------------------------------------------------

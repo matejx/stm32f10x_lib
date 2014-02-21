@@ -122,6 +122,12 @@ void ser_putc(const uint8_t n, const char a)
 	}
 
 	USART_ITConfig(usart_get_pdef(n)->usart, USART_IT_TXE, ENABLE); // enable data register empty interrupt
+/*	
+	struct USART_DevDef* pdef = usart_get_pdef(n);
+
+	while( RESET == USART_GetFlagStatus(pdef->usart, USART_FLAG_TXE) ) {}
+	
+	USART_SendData(pdef->usart, a);*/
 }
 
 // ------------------------------------------------------------------
