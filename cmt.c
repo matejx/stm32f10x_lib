@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
 // --- cmt.c                                                      ---
 // --- simple cooperative "on-delay" multitasking                 ---
-// ---                                15.dec.2013, Matej Kogovsek ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include "stm32f10x.h"

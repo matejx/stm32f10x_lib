@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
-// --- serialq.c - basic routines for sending data over USART     ---
-// ---                                                            ---
-// ---            03.dec.2013, Matej Kogovsek (matej@hamradio.si) ---
+// --- serialq.c                                                  ---
+// --- routines for sending data over USART                       ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include <inttypes.h>

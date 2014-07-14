@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
-// --- circbuf.c - circular buffer routines                       ---
-// ---                                                            ---
-// ---             7.nov.2010, Matej Kogovsek (matej@hamradio.si) ---
+// --- circbuf.c                                                  ---
+// --- circular buffer routines                                   ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include "stm32f10x.h"

@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
-// --- lcd3.c                                                     ---
-// --- library for controlling the HD44780 via PCF8574            ---
-// ---                                    coded by Matej Kogovsek ---
+// --- lcd_pfc8574.c                                              ---
+// --- HD44780 via PCF8574                                        ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include <inttypes.h>

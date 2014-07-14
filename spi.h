@@ -12,7 +12,7 @@
 void spi_init(uint8_t SPIy, const uint16_t brps);
 void spi_putc(uint8_t SPIy, uint8_t* d);
 void spi_puts(uint8_t SPIy, char* s);
-void spi_putsn(uint8_t SPIy, char* s, uint8_t n);
+void spi_putsn(uint8_t SPIy, char* s, uint16_t n);
 
 // low level routines
 void spi_cs(uint8_t SPIy, uint8_t cs);

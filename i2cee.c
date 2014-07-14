@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
-// --- i2cee.c - I2C EE routines for 24Cxxx                       ---
-// ---                                                            ---
-// ---                                30.nov.2013, Matej Kogovsek ---
+// --- i2cee.c                                                    ---
+// --- I2C EE routines for 24Cxxx                                 ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include <inttypes.h>

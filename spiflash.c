@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
-// --- spiflash.c - serial flash routines                         ---
-// ---                                                            ---
-// ---                                 4.mar.2011, Matej Kogovsek ---
+// --- spiflash.c                                                 ---
+// --- serial flash routines                                      ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include <inttypes.h>

@@ -1,10 +1,11 @@
 // ------------------------------------------------------------------
-// --- spiee.c - serial EE routines for ST95P08                   ---
-// ---                                                            ---
-// ---                                30.nov.2013, Matej Kogovsek ---
+// --- spiee.c                                                    ---
+// --- serial EE routines for ST95P08                             ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include <inttypes.h>
+#include <string.h>
 
 #include "spi.h"
 
@@ -46,6 +47,7 @@ uint8_t spiee_rd(uint8_t n, uint32_t adr, uint8_t* buf, uint16_t len)
 	
 	spi_rw(n, ((adr >> 5) & 0x18) | 0x03 ); // READ instruction containing A9 and A8
 	spi_rw(n, adr & 0xff ); // address A7..A0
+	memset(buf, 0, len);
 	spi_putsn(n, (char*)buf, len);	
 	
 	SPIEE_CS_HIGH;
@@ -72,7 +74,10 @@ uint8_t spiee_wr(uint8_t n, uint32_t adr, uint8_t* buf, uint16_t len)
 	
 	spi_rw(n, ((adr >> 5) & 0x18) | 0x02 ); // WRITE instruction containing A9 and A8
 	spi_rw(n, adr & 0xff ); // address A7..A0
-	spi_putsn(n, (char*)buf, len);
+	while( len-- ) {
+		spi_rw(n, *buf);
+		buf++;
+	}
 	
 	SPIEE_CS_HIGH;
 

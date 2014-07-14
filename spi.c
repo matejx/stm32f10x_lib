@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
-// --- spi.c - Basic routines for sending data over SPI           ---
-// ---                                                            ---
-// ---            24.jul.2013, Matej Kogovsek (matej@hamradio.si) ---
+// --- spi.c                                                      ---
+// --- routines for sending data over SPI                         ---
+// ---                         Matej Kogovsek (matej@hamradio.si) ---
 // ------------------------------------------------------------------
 
 #include <inttypes.h>
@@ -134,7 +134,7 @@ void spi_puts(uint8_t SPIy, char* s)
 // ------------------------------------------------------------------
 // send and receive string of length n
 
-void spi_putsn(uint8_t SPIy, char* s, uint8_t n)
+void spi_putsn(uint8_t SPIy, char* s, uint16_t n)
 {
 	spi_cs(SPIy, 0);
 	while( n-- ) {
