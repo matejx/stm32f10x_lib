@@ -1,21 +1,27 @@
-// ------------------------------------------------------------------
-// --- adc.c                                                      ---
-// --- ADC routines                                               ---
-// ---                         Matej Kogovsek (matej@hamradio.si) ---
-// ------------------------------------------------------------------
+/**
+@file		adc.c
+@brief		ADC routines for STM32 F1
+@author		Matej Kogovsek (matej@hamradio.si)
+@copyright	LGPL 2.1
+@note		This file is part of mat-stm32f1-lib
+*/
 
 #include <stm32f10x.h>
 #include <stm32f10x_adc.h>
 
-static volatile uint16_t adc[16];
-static volatile uint8_t adc_curch = 0;
-static uint8_t adc_sch;
-static uint8_t adc_ech;
-static uint8_t adc_freerun = 0;
+static volatile uint16_t adc[16]; /**< Buffer of averaged results for all possible channels */
+static volatile uint8_t adc_curch = 0; /**< Channel currently converting */
+static uint8_t adc_sch; /**< Start channel */
+static uint8_t adc_ech; /**< End channel */
+static uint8_t adc_freerun = 0; /**< Freerun or not (bool) */
 
-#define ADC_AVG_SAMP 16		// how many ADC samples to average
+static const uint8_t ADC_AVG_SAMP = 16;		/**< how many ADC samples to average */
 
-// sets up ADC conversion complete interrupt and starts converting
+/**
+@brief Init ADC.
+@param[in]	sch		Start channel
+@param[in]	ech		End channel
+*/
 void adc_init(uint8_t sch, uint8_t ech)
 {
 	if( ech > 15 ) ech = 15;
@@ -71,6 +77,11 @@ void adc_init(uint8_t sch, uint8_t ech)
 	NVIC_Init(&ictd);
 }
 
+/**
+@brief Start next conversion.
+
+Use if you want to control when conversions are started. Do not call if free running.
+*/
 void adc_startnext(void)
 {
   ADC_RegularChannelConfig(ADC1, adc_curch, 1, ADC_SampleTime_1Cycles5);
@@ -82,25 +93,35 @@ void adc_startnext(void)
   //return ADC_GetConversionValue(ADC1);
 }
 
+/**
+@brief Start free running ADC conversions.
+
+After a conversion is finished, a new conversion is automatically started.
+*/
 void adc_startfree(void)
 {
 	adc_freerun = 1;
 	adc_startnext();
 }
 
-// get the latest adc[i] value
-uint16_t adc_get(const uint8_t i)
+/**
+@brief Get a channel's averaged ADC value.
+@param[in]	ch		Channel to get
+@return Averaged ADC value for channel
+*/
+uint16_t adc_get(const uint8_t ch)
 {
 	uint32_t g = __get_PRIMASK();
 	__disable_irq();
 
-	uint16_t r = adc[i];
+	uint16_t r = adc[ch];
 
 	__set_PRIMASK(g);
 	return r;
 }
 
-// ADC conversion complete interrupt
+/** @privatesection */
+
 void ADC1_IRQHandler(void)
 {
 	static uint16_t sum = 0;

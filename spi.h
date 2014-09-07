@@ -9,13 +9,13 @@
 
 #include <inttypes.h>
 
-void spi_init(uint8_t SPIy, const uint16_t brps);
-void spi_putc(uint8_t SPIy, uint8_t* d);
-void spi_puts(uint8_t SPIy, char* s);
-void spi_putsn(uint8_t SPIy, char* s, uint16_t n);
+void spi_init(uint8_t devnum, const uint16_t brps);
+void spi_putc(uint8_t devnum, uint8_t* d);
+void spi_puts(uint8_t devnum, char* s);
+void spi_putsn(uint8_t devnum, char* s, uint16_t n);
 
 // low level routines
-void spi_cs(uint8_t SPIy, uint8_t cs);
-uint8_t spi_rw(uint8_t SPIy, const uint8_t d);
+void spi_cs(uint8_t devnum, uint8_t nss);
+uint8_t spi_rw(uint8_t devnum, const uint8_t d);
 
 #endif

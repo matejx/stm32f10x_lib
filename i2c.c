@@ -1,8 +1,11 @@
-// ------------------------------------------------------------------
-// --- i2c.c                                                      ---
-// --- I2C routines                                               ---
-// ---                         Matej Kogovsek (matej@hamradio.si) ---
-// ------------------------------------------------------------------
+/**
+@file		i2c.c
+@brief		I2C master routines for STM32 F1
+@author		Matej Kogovsek (matej@hamradio.si)
+@copyright	LGPL 2.1
+@note		This file is part of mat-stm32f1-lib
+@note		This file was not written by me from scratch. It was adapted from code by Geoffrey Brown at https://github.com/geoffreymbrown/STM32-Template/blob/master/Library/i2c.c
+*/
 
 #include <stm32f10x.h>
 #include <stm32f10x_i2c.h>
@@ -11,7 +14,12 @@
 
 #include "i2c.h"
 
-#define i2c_waitfor(x, y) Timeout = 0xffff; while (x) { if (Timeout-- == 0) return y; }
+/** @privatesection */
+
+/**
+Convenience macro that waits for a zero result from a function with a timeout
+*/
+#define i2c_waitfor(_cond, _ec) { uint16_t _tmo = 0xffff; while( _cond ) { if (_tmo-- == 0) return _ec; } }
 
 struct I2C_DevDef
 {
@@ -24,20 +32,29 @@ struct I2C_DevDef
 	uint16_t pin_sda;
 };
 
+/** Register and pin defs for I2C1 */
 struct I2C_DevDef I2C1_PinDef = {1, I2C1, RCC_APB1Periph_I2C1, GPIOB, RCC_APB2Periph_GPIOB, GPIO_Pin_6, GPIO_Pin_7};
+/** Register and pin defs for I2C2 */
 struct I2C_DevDef I2C2_PinDef = {1, I2C2, RCC_APB1Periph_I2C2, GPIOB, RCC_APB2Periph_GPIOB, GPIO_Pin_10, GPIO_Pin_11};
 
-struct I2C_DevDef* i2c_get_pdef(uint8_t I2Cy)
+struct I2C_DevDef* i2c_get_pdef(uint8_t devnum)
 {
-	if( I2Cy == 1 ) return &I2C1_PinDef;
-	if( I2Cy == 2 ) return &I2C2_PinDef;
-	
+	if( devnum == 1 ) return &I2C1_PinDef;
+	if( devnum == 2 ) return &I2C2_PinDef;
+
 	return 0;
 }
 
-void i2c_init(uint8_t I2Cy, const uint32_t clkspd)
+/** @publicsection */
+
+/**
+@brief Init I2C
+@param[in]	devnum		I2C peripheral number (1 or 2)
+@param[in]	clkspd		Baudrate (i.e. 100000 for 100kHz), F_CPU independent
+*/
+void i2c_init(uint8_t devnum, const uint32_t clkspd)
 {
-	struct I2C_DevDef* pdef = i2c_get_pdef(I2Cy);
+	struct I2C_DevDef* pdef = i2c_get_pdef(devnum);
 
     // Enable GPIO clocks
     RCC_APB2PeriphClockCmd(pdef->gpio_clk, ENABLE);
@@ -65,16 +82,24 @@ void i2c_init(uint8_t I2Cy, const uint32_t clkspd)
 	i2td.I2C_Ack = I2C_Ack_Enable;
 	i2td.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
 	I2C_Init(pdef->i2c, &i2td);
-	
-	I2C_Cmd(pdef->i2c, ENABLE); 
+
+	I2C_Cmd(pdef->i2c, ENABLE);
 }
 
-uint8_t i2c_rd(uint8_t I2Cy, uint8_t adr, uint8_t *buf, uint32_t nbyte)
+/**
+@brief Read from I2C
+@param[in]	devnum		I2C peripheral number (1 or 2)
+@param[in]	adr			I2C address
+@param[out]	buf			pointer to caller allocated buffer for data
+@param[in]	nbyte		number of bytes to read (nbyte < sizeof(buf))
+@return 0 on success, non-zero otherwise
+*/
+uint8_t i2c_rd(uint8_t devnum, uint8_t adr, uint8_t *buf, uint32_t nbyte)
 {
-	I2C_TypeDef* I2Cx = i2c_get_pdef(I2Cy)->i2c;
-	__IO uint32_t Timeout = 0;
+	I2C_TypeDef* I2Cx = i2c_get_pdef(devnum)->i2c;
+	//__IO uint32_t Timeout = 0;
 
-	//    I2Cx->CR2 |= I2C_IT_ERR;  interrupts for errors 
+	//    I2Cx->CR2 |= I2C_IT_ERR;  interrupts for errors
 
 	if (!nbyte) { return 1; }
 
@@ -96,19 +121,19 @@ uint8_t i2c_rd(uint8_t I2Cy, uint8_t adr, uint8_t *buf, uint32_t nbyte)
 	i2c_waitfor(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_ADDR), 3);
 
 	if (nbyte == 1) {
-		// Clear Ack bit      
-		I2C_AcknowledgeConfig(I2Cx, DISABLE);       
+		// Clear Ack bit
+		I2C_AcknowledgeConfig(I2Cx, DISABLE);
 
 		// EV6_1 -- must be atomic -- Clear ADDR, generate STOP
 		__disable_irq();
-		(void) I2Cx->SR2;                           
-		I2C_GenerateSTOP(I2Cx,ENABLE);      
+		(void) I2Cx->SR2;
+		I2C_GenerateSTOP(I2Cx,ENABLE);
 		__enable_irq();
 
 		// Receive data   EV7
 		i2c_waitfor(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE), 4);
 		*buf++ = I2C_ReceiveData(I2Cx);
-		} else 
+		} else
 		if (nbyte == 2) {
 		// Set POS flag
 		I2C_NACKPositionConfig(I2Cx, I2C_NACKPosition_Next);
@@ -131,9 +156,9 @@ uint8_t i2c_rd(uint8_t I2Cy, uint8_t adr, uint8_t *buf, uint32_t nbyte)
 	} else {
 		(void) I2Cx->SR2;                           // Clear ADDR flag
 		while (nbyte-- != 3) {
-			// EV7 -- cannot guarantee 1 transfer completion time, wait for BTF 
+			// EV7 -- cannot guarantee 1 transfer completion time, wait for BTF
 			//        instead of RXNE
-			i2c_waitfor(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF), 6); 
+			i2c_waitfor(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_BTF), 6);
 			*buf++ = I2C_ReceiveData(I2Cx);
 		}
 
@@ -150,7 +175,7 @@ uint8_t i2c_rd(uint8_t I2Cy, uint8_t adr, uint8_t *buf, uint32_t nbyte)
 		*buf++ = I2C_ReceiveData(I2Cx);             // receive byte N-1
 
 		// wait for byte N
-		i2c_waitfor(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), 8); 
+		i2c_waitfor(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED), 8);
 		*buf++ = I2C_ReceiveData(I2Cx);
 
 		nbyte = 0;
@@ -161,14 +186,18 @@ uint8_t i2c_rd(uint8_t I2Cy, uint8_t adr, uint8_t *buf, uint32_t nbyte)
 	return 0;
 }
 
-/*
- * Read buffer of bytes -- AN2824 Figure 3
- */
-
-uint8_t i2c_wr(uint8_t I2Cy, uint8_t adr, const uint8_t* buf,  uint32_t nbyte)
+/**
+@brief Write to I2C
+@param[in]	devnum		I2C peripheral number (1 or 2)
+@param[in]	adr			I2C address
+@param[in]	buf			pointer to data
+@param[in]	nbyte		number of bytes to write (nbyte < sizeof(buf))
+@return 0 on success, non-zero otherwise
+*/
+uint8_t i2c_wr(uint8_t devnum, uint8_t adr, const uint8_t* buf,  uint32_t nbyte)
 {
-	I2C_TypeDef* I2Cx = i2c_get_pdef(I2Cy)->i2c;
-	__IO uint32_t Timeout = 0;
+	I2C_TypeDef* I2Cx = i2c_get_pdef(devnum)->i2c;
+	//__IO uint32_t Timeout = 0;
 
 	/* Enable Error IT (used in all modes: DMA, Polling and Interrupts */
 	// I2Cx->CR2 |= I2C_IT_ERR;
@@ -198,6 +227,6 @@ uint8_t i2c_wr(uint8_t I2Cy, uint8_t adr, const uint8_t* buf,  uint32_t nbyte)
 		I2C_GenerateSTOP(I2Cx, ENABLE);
 		i2c_waitfor(I2C_GetFlagStatus(I2C1, I2C_FLAG_STOPF), 6);
 	}
-	
+
 	return 0;
 }
