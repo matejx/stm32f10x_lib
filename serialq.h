@@ -13,6 +13,7 @@ void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint8_t txs
 void ser_shutdown(const uint8_t devnum);
 
 void ser_flush_rxbuf(const uint8_t devnum);
+void ser_wait_txe(const uint8_t devnum);
 uint8_t ser_getc(const uint8_t devnum, uint8_t* const d);
 
 void ser_putc(const uint8_t devnum, const char a);

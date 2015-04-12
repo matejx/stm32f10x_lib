@@ -1,10 +1,10 @@
 /**
 @file		i2c.c
-@brief		I2C master routines for STM32 F1
+@brief		I2C master routines for
 @author		Matej Kogovsek (matej@hamradio.si)
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
-@note		This file was not written by me from scratch. It was adapted from code by Geoffrey Brown at https://github.com/geoffreymbrown/STM32-Template/blob/master/Library/i2c.c
+@note		This file was not written by me from scratch. It was adapted from code by Geoffrey Brown at https://github.com/geoffreymbrown/STM32-Template
 */
 
 #include <stm32f10x.h>
@@ -91,7 +91,7 @@ void i2c_init(uint8_t devnum, const uint32_t clkspd)
 @param[in]	devnum		I2C peripheral number (1 or 2)
 @param[in]	adr			I2C address
 @param[out]	buf			pointer to caller allocated buffer for data
-@param[in]	nbyte		number of bytes to read (nbyte < sizeof(buf))
+@param[in]	nbyte		number of bytes to read (nbyte <= sizeof(buf))
 @return 0 on success, non-zero otherwise
 */
 uint8_t i2c_rd(uint8_t devnum, uint8_t adr, uint8_t *buf, uint32_t nbyte)
@@ -191,7 +191,7 @@ uint8_t i2c_rd(uint8_t devnum, uint8_t adr, uint8_t *buf, uint32_t nbyte)
 @param[in]	devnum		I2C peripheral number (1 or 2)
 @param[in]	adr			I2C address
 @param[in]	buf			pointer to data
-@param[in]	nbyte		number of bytes to write (nbyte < sizeof(buf))
+@param[in]	nbyte		number of bytes to write (nbyte <= sizeof(buf))
 @return 0 on success, non-zero otherwise
 */
 uint8_t i2c_wr(uint8_t devnum, uint8_t adr, const uint8_t* buf,  uint32_t nbyte)

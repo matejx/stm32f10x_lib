@@ -78,7 +78,7 @@ void ee95_wren(uint8_t n)
 }
 
 /**
-@brief Write to flash.
+@brief Write to EE.
 @param[in]	n		SPI peripheral number
 @param[in]	adr		Starting byte address
 @param[in]	buf		Caller provided buffer with data

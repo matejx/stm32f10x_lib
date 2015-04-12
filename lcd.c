@@ -1,4 +1,8 @@
 /**
+
+This is the high level part of HD44780 control. Low level
+driver is implemented elsewhere.
+
 @file		lcd.c
 @brief		HD44780 LCD routines (high level)
 @author		Matej Kogovsek (matej@hamradio.si)

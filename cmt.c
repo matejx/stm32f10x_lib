@@ -21,7 +21,7 @@ Although mutexes are rarely needed in a cooperative multitasking scenario (since
 current task's control), mutex functions are implemented for convenience (and because it was fun to do).
 
 @file		cmt.c
-@brief		Simple cooperative "on-delay" multitasking for STM32 F1
+@brief		Simple cooperative "on-delay" multitasking
 @author		Matej Kogovsek (matej@hamradio.si)
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib

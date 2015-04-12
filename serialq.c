@@ -4,7 +4,7 @@ All USART data transmission is interrupt driven. Received data is put into a FIF
 Data to be transmitted is likewise put into a FIFO. Memory for both FIFOs is provided by the caller on init.
 
 @file		serialq.c
-@brief		Buffered USART routines for STM32 F1
+@brief		Buffered USART routines
 @author		Matej Kogovsek (matej@hamradio.si)
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
@@ -110,6 +110,7 @@ void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint8_t txs
 
 /**
 @brief Deinit USART.
+@param[in]	devnum		USART peripheral number (1..3)
 */
 void ser_shutdown(const uint8_t devnum)
 {
@@ -123,6 +124,17 @@ void ser_shutdown(const uint8_t devnum)
 void ser_flush_rxbuf(const uint8_t devnum)
 {
 	cbuf8_clear(&uart_rxq[devnum-1], uart_rxq[devnum-1].buf, uart_rxq[devnum-1].size);
+}
+
+/**
+@brief Wait for output queue to be transmitted
+@param[in]	devnum		USART peripheral number (1..3)
+*/
+void ser_wait_txe(const uint8_t devnum)
+{
+	struct USART_DevDef* pdef = usart_get_pdef(devnum);
+
+	while( USART_GetFlagStatus(pdef->usart, USART_FLAG_TC) == RESET );
 }
 
 /**

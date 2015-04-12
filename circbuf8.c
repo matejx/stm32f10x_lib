@@ -1,6 +1,6 @@
 /**
 @file		circbuf8.c
-@brief		Circular byte buffer routines for STM32 F1. Interrupt safe.
+@brief		Circular byte buffer routines. Interrupt safe.
 @author		Matej Kogovsek (matej@hamradio.si)
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
@@ -80,5 +80,3 @@ uint8_t cbuf8_get(volatile struct cbuf8_t* cb, uint8_t* const d)
 	__set_PRIMASK(g);
 	return 1;
 }
-
-// ------------------------------------------------------------------
