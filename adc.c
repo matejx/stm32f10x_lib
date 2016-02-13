@@ -9,70 +9,58 @@
 #include <stm32f10x.h>
 #include <stm32f10x_adc.h>
 
-static volatile uint16_t adc[16]; /**< Buffer of averaged results for all possible channels */
-static volatile uint8_t adc_curch = 0; /**< Channel currently converting */
-static uint8_t adc_sch; /**< Start channel */
-static uint8_t adc_ech; /**< End channel */
-static uint8_t adc_freerun = 0; /**< Freerun or not (bool) */
+#define ADC_NCH 18
 
-static const uint8_t ADC_AVG_SAMP = 16;		/**< how many ADC samples to average */
+static volatile uint16_t adc_res[ADC_NCH]; /**< Buffer of averaged results for all possible channels */
+static volatile uint8_t adc_curch; /**< Channel currently converting */
+static uint32_t adc_ench; /**< Enabled channel */
+static uint8_t adc_freerun = 0; /**< Freerun or not (bool) */
+static uint8_t adc_navg = 16; /**< how many ADC samples to average */
 
 /**
 @brief Init ADC.
-@param[in]	sch		Start channel
-@param[in]	ech		End channel
+@param[in]	ench		Bitmask of enabled channels (bits 0 to 17)
+@param[in]	navg		Number of samples to average (keep this a power of two, i.e. 1,2,4,8,16,...)
 */
-void adc_init(uint8_t sch, uint8_t ech)
+void adc_init(uint32_t ench, uint8_t navg)
 {
-	if( ech > 15 ) ech = 15;
-	if( sch > ech ) sch = ech;
-	adc_sch = sch;
-	adc_ech = ech;
+	adc_ench = ench;
+	adc_curch = 255;	// set to invalid value
+	adc_navg = navg;
+	if( adc_navg == 0 ) adc_navg = 1;
 
-	ADC_InitTypeDef  adis;
-	// PCLK2 is the APB2 clock
-	// ADCCLK = PCLK2/6 = 72/6 = 12MHz
+	// PCLK2 is the APB2 clock, ADCCLK = PCLK2/6 = 72/6 = 12MHz
 	RCC_ADCCLKConfig(RCC_PCLK2_Div6);
 
-	// Enable ADC1 clock so that we can talk to it
+	// Enable ADC1 clock
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-	// Put everything back to power-on defaults
-	//ADC_DeInit(ADC1);
 
 	// ADC1 Configuration
+	ADC_InitTypeDef  adis;
 	adis.ADC_Mode = ADC_Mode_Independent;
-	// Disable the scan conversion so we do one at a time
 	adis.ADC_ScanConvMode = DISABLE;
-	// Don't do contimuous conversions - do them on demand
 	adis.ADC_ContinuousConvMode = DISABLE;
-	// Start conversion by software, not an external trigger
 	adis.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
-	// Conversions are 12 bit - put them in the lower 12 bits of the result
 	adis.ADC_DataAlign = ADC_DataAlign_Right;
-	// Say how many channels would be used by the sequencer
 	adis.ADC_NbrOfChannel = 1;
 
-	// Now do the setup
 	ADC_Init(ADC1, &adis);
-	// Enable ADC1
 	ADC_Cmd(ADC1, ENABLE);
 
-	// Enable ADC1 reset calibaration register
 	ADC_ResetCalibration(ADC1);
-	// Check the end of ADC1 reset calibration register
 	while( ADC_GetResetCalibrationStatus(ADC1) );
-	// Start ADC1 calibaration
 	ADC_StartCalibration(ADC1);
-	// Check the end of ADC1 calibration
 	while( ADC_GetCalibrationStatus(ADC1) );
-
-	adc_curch = adc_sch;
 
 	ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE);
 
 	// ADC interrupt setup
 	NVIC_InitTypeDef ictd;
+#ifdef ADC1_IRQn
 	ictd.NVIC_IRQChannel = ADC1_IRQn;
+#else
+	ictd.NVIC_IRQChannel = ADC1_2_IRQn;
+#endif
 	ictd.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&ictd);
 }
@@ -84,13 +72,17 @@ Use if you want to control when conversions are started. Do not call if free run
 */
 void adc_startnext(void)
 {
-  ADC_RegularChannelConfig(ADC1, adc_curch, 1, ADC_SampleTime_1Cycles5);
-  // Start the conversion
-  ADC_SoftwareStartConvCmd(ADC1, ENABLE);
-  // Wait until conversion completion
-  //while( ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET );
-  // Get the conversion value
-  //return ADC_GetConversionValue(ADC1);
+	//if( ADC_GetSoftwareStartConvStatus(ADC1) == SET ) return;
+
+	if( adc_ench ) { // sanity check
+		do {
+			adc_curch++;
+			if( adc_curch >= ADC_NCH ) adc_curch = 0;
+		} while( (adc_ench & (1 << adc_curch)) == 0 );
+
+		ADC_RegularChannelConfig(ADC1, adc_curch, 1, ADC_SampleTime_13Cycles5);
+		ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+	}
 }
 
 /**
@@ -105,16 +97,27 @@ void adc_startfree(void)
 }
 
 /**
+@brief Stop free running ADC conversions.
+
+*/
+void adc_stopfree(void)
+{
+	adc_freerun = 0;
+}
+
+/**
 @brief Get a channel's averaged ADC value.
 @param[in]	ch		Channel to get
 @return Averaged ADC value for channel
 */
 uint16_t adc_get(const uint8_t ch)
 {
+	if( ch >= ADC_NCH ) return 0;
+
 	uint32_t g = __get_PRIMASK();
 	__disable_irq();
 
-	uint16_t r = adc[ch];
+	uint16_t r = adc_res[ch];
 
 	__set_PRIMASK(g);
 	return r;
@@ -122,7 +125,7 @@ uint16_t adc_get(const uint8_t ch)
 
 /** @privatesection */
 
-void ADC1_IRQHandler(void)
+void ADC1_2_IRQHandler(void)
 {
 	static uint16_t sum = 0;
 	static uint8_t samp = 0;
@@ -130,13 +133,14 @@ void ADC1_IRQHandler(void)
 	sum += ADC_GetConversionValue(ADC1); // add new conversion result to sum
 	samp++;						    // increase sample counter
 
-	if( samp == ADC_AVG_SAMP ) {
-		sum /= ADC_AVG_SAMP;	    // calc average
-		adc[adc_curch] = sum;	    // store averaged conversion result
-		if( ++adc_curch > adc_ech ) adc_curch = adc_sch;	  // advance channel
+	if( samp == adc_navg ) {
+		sum /= adc_navg;	    // calc average
+		adc_res[adc_curch] = sum;	// store averaged conversion result
 		samp = 0;				    // reset variables
 		sum = 0;
-	}
 
-	if( adc_freerun ) adc_startnext();
+		if( adc_freerun ) adc_startnext();
+	} else {
+		ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+	}
 }

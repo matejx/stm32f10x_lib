@@ -84,18 +84,18 @@ int main(void)
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0); // disable preemption
 
 	ser_init(1, 115200, uart1txbuf, sizeof(uart1txbuf), uart1rxbuf, sizeof(uart1rxbuf));
-	adc_init(4, 7);
+	adc_init(0x0f, 8);	// enable 4 AD channels (0..3), average 8 samples
 	adc_startfree();
-
-	uint8_t i = 4;
 
 	while( 1 ) {
 		_delay_ms(200);
-		ser_puti(1, i, 10);
-		ser_puts(1, " : ");
-		ser_puti(1, adc_get(i), 10);
-		ser_puts(1, "\r\n");
 
-		if( ++i > 7 ) i = 4;
+		for( uint8_t i = 0; i < 3; ++i ) {
+			ser_puti(1, i, 10);
+			ser_puts(1, " : ");
+			ser_puti(1, adc_get(i), 10);
+			ser_puts(1, "\r\n");
+		}
+		ser_puts(1, "---\r\n");
 	}
 }
