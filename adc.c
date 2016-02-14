@@ -56,11 +56,7 @@ void adc_init(uint32_t ench, uint8_t navg)
 
 	// ADC interrupt setup
 	NVIC_InitTypeDef ictd;
-#ifdef ADC1_IRQn
-	ictd.NVIC_IRQChannel = ADC1_IRQn;
-#else
-	ictd.NVIC_IRQChannel = ADC1_2_IRQn;
-#endif
+	ictd.NVIC_IRQChannel = 18; // ADC1_IRQn or ADC1_2_IRQn
 	ictd.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&ictd);
 }
