@@ -66,10 +66,10 @@ volatile struct cbuf8_t uart_txq[3];
 @param[in]	rxb			Pointer to caller allocated RX buffer
 @param[in]	rxs			sizeof(rxs)
 */
-void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint8_t txs, uint8_t* rxb, uint8_t rxs)
+void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs)
 {
 	cbuf8_clear(&uart_rxq[devnum-1], rxb, rxs);
-	cbuf8_clear(&uart_txq[devnum-1], rxb, rxs);
+	cbuf8_clear(&uart_txq[devnum-1], txb, txs);
 
 	struct USART_DevDef* pdef = usart_get_pdef(devnum);
 

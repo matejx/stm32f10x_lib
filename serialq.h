@@ -9,7 +9,7 @@
 
 #include <inttypes.h>
 
-void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint8_t txs, uint8_t* rxb, uint8_t rxs);
+void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs);
 void ser_shutdown(const uint8_t devnum);
 
 void ser_flush_rxbuf(const uint8_t devnum);

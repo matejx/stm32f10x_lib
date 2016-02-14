@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 
-void cdc_init(uint8_t* txb, uint8_t txs, uint8_t* rxb, uint8_t rxs);
+void cdc_init(uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs);
 
 void cdc_putc(char a);
 void cdc_puts(char* s);

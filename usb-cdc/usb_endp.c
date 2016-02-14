@@ -14,7 +14,7 @@ volatile struct cbuf8_t cdc_txq;
 
 void EP1_IN_Callback(void); // forward decl
 
-void cdc_init(uint8_t* txb, uint8_t txs, uint8_t* rxb, uint8_t rxs)
+void cdc_init(uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs)
 {
 	cbuf8_clear(&cdc_txq, txb, txs);
 	cbuf8_clear(&cdc_rxq, rxb, rxs);
