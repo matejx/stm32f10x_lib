@@ -13,9 +13,10 @@
 #include "spi.h"
 
 extern void _delay_ms(uint32_t); /**< @brief extern */
+extern void fls25_cs(uint8_t devnum, uint8_t nss); /**< @brief extern */
 
-#define FLS25_NSS_HIGH spi_cs(n, 1) /**< Set NSS macro */
-#define FLS25_NSS_LOW spi_cs(n, 0)	/**< Clear NSS macro */
+#define FLS25_NSS_HIGH fls25_cs(n, 1) /**< Set NSS macro */
+#define FLS25_NSS_LOW fls25_cs(n, 0)	/**< Clear NSS macro */
 
 /**
 @brief Wait for flash to become ready.

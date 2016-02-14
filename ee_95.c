@@ -12,8 +12,10 @@
 
 #include "spi.h"
 
-#define EE95_CS_HIGH spi_cs(n, 1) /**< Set NSS macro */
-#define EE95_CS_LOW spi_cs(n, 0) /**< Clear NSS macro */
+extern void ee95_cs(uint8_t devnum, uint8_t nss); /**< @brief extern */
+
+#define EE95_CS_HIGH ee95_cs(n, 1) /**< Set NSS macro */
+#define EE95_CS_LOW ee95_cs(n, 0) /**< Clear NSS macro */
 
 extern void _delay_ms(uint32_t); /**< @brief extern */
 
