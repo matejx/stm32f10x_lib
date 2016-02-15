@@ -13,7 +13,7 @@
 #include "i2c.h"
 #include "string.h"
 
-#define EE24_I2C_ADR 0xa0 /**< EE I2C address */
+uint8_t EE24_I2C_ADR = 0xa0; /**< EE I2C address */
 
 extern void _delay_ms(uint32_t); /**< @brief extern */
 
