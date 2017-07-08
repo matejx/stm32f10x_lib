@@ -237,7 +237,7 @@ void ser_putf(const uint8_t devnum, float f, uint8_t prec)
 	}
 }
 
-uint8_t ser_printf_devnum = 1; /**< USART peripheral number used by ser_printf */
+uint8_t ser_printf_devnum = 0; /**< USART peripheral number used by ser_printf */
 
 /**
 @brief Simplified implementation of printf (without dynamic malloc).
@@ -248,6 +248,7 @@ Variable ser_printf_devnum has to be set to the wanted USART peripheral number (
 int ser_printf(const char* s, ...)
 {
 	uint8_t devnum = ser_printf_devnum;
+	if( devnum == 0 ) return 0;
 	va_list vl;
 	va_start(vl, s);
 	uint8_t esc = 0;

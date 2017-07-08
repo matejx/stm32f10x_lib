@@ -9,7 +9,7 @@
 #include <stm32f10x.h>
 #include <stm32f10x_adc.h>
 
-#define ADC_NCH 18
+#define ADC_NCH 18 /**< Max number of ADC channels */
 
 static volatile uint16_t adc_res[ADC_NCH]; /**< Buffer of averaged results for all possible channels */
 static volatile uint8_t adc_curch; /**< Channel currently converting */
