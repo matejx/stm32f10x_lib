@@ -228,13 +228,16 @@ void ser_puti_lc(const uint8_t devnum, const int32_t a, const uint8_t r, uint8_t
 */
 void ser_putf(const uint8_t devnum, float f, uint8_t prec)
 {
-	ser_puti_lc(devnum, f, 10, 0, '0');
-	ser_putc(devnum, '.');
-	while( prec-- ) {
-		f = f - (int)f;
-		f = f * 10;
-		ser_puti_lc(devnum, f, 10, 0, '0');
+	if( f < 0 ) {
+		f = -f;
+		ser_putc(devnum, '-');
 	}
+	ser_puti_lc(devnum, f, 10, 0, 0);
+	ser_putc(devnum, '.');
+	f = f - (int)f;
+	uint8_t i = prec;
+	while( i-- ) f *= 10;
+	ser_puti_lc(devnum, f, 10, prec, '0');
 }
 
 uint8_t ser_printf_devnum = 0; /**< USART peripheral number used by ser_printf */

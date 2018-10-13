@@ -5,14 +5,20 @@
 
 #include "mat/serialq.h"
 #include "mat/circbuf8.h"
+#include "mat/itoa.h"
 
 #include <string.h>
-#include "../itoa.h"
 
 volatile struct cbuf8_t cdc_rxq;
 volatile struct cbuf8_t cdc_txq;
 
-void EP1_IN_Callback(void); // forward decl
+volatile uint8_t ep1_in_transferring = 0;
+
+uint8_t EP1_IN_PrepareTX(void); // forward decl
+
+// ----------------------------------------------------------------------------
+// CDC public methods
+// ----------------------------------------------------------------------------
 
 void cdc_init(uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs)
 {
@@ -22,9 +28,9 @@ void cdc_init(uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs)
 
 void cdc_tx(void)
 {
-	if( GetEPTxStatus(ENDP1) == EP_TX_VALID ) return; // previous packet not yet sent
-
-	EP1_IN_Callback();
+  if( ep1_in_transferring ) return;
+	ep1_in_transferring = 1;
+	EP1_IN_PrepareTX();
 }
 
 void cdc_putc_(char a)
@@ -75,13 +81,16 @@ void cdc_puti_lc(const int32_t a, const uint8_t r, uint8_t w, char c)
 
 void cdc_putf(float f, uint8_t prec)
 {
-	cdc_puti_lc(f, 10, 0, '0');
-	cdc_putc_('.');
-	while( prec-- ) {
-		f = f - (int)f;
-		f = f * 10;
-		cdc_puti_lc(f, 10, 0, '0');
+	if( f < 0 ) {
+		f = -f;
+		cdc_putc('-');
 	}
+	cdc_puti_lc(f, 10, 0, 0);
+	cdc_putc('.');
+	f = f - (int)f;
+	uint8_t i = prec;
+	while( i-- ) f *= 10;
+	cdc_puti_lc(f, 10, prec, '0');
 }
 
 uint8_t cdc_getc(uint8_t* const d)
@@ -90,34 +99,48 @@ uint8_t cdc_getc(uint8_t* const d)
 	return r;
 }
 
-void EP1_IN_Callback(void)
-{
-	uint8_t len = 0;
-	uint16_t d;
-	uint16_t* pma = (uint16_t*)(PMAAddr + (2 * ENDP1_TXADDR));
+// ----------------------------------------------------------------------------
+// USB endpoint callbacks
+// ----------------------------------------------------------------------------
 
-	while( cbuf8_get(&cdc_txq, (uint8_t*)&d) && (len < VCP_DATA_SIZE) ) {
+uint8_t EP1_IN_PrepareTX(void)
+{
+	if( GetEPTxStatus(ENDP1) == EP_TX_VALID ) return 0;
+
+	uint8_t len = 0;
+	uint8_t dh,dl;
+	uint32_t* pma = (uint32_t*)(PMAAddr + (2 * ENDP1_TXADDR));
+
+	while( cbuf8_get(&cdc_txq, &dl) ) {
 		++len;
-		if( cbuf8_get(&cdc_txq, 1+(uint8_t*)&d) ) ++len;
-		*pma++ = d;
-		pma++;
+		dh = 0;
+		if( cbuf8_get(&cdc_txq, &dh) ) ++len;
+		*pma++ = dh * 0x100 + dl;
+		if( len >= VCP_DATA_SIZE ) break;
 	}
 
-	if( len == 0 ) return;
+	if( len ) {
+		SetEPTxCount(ENDP1, len);
+		SetEPTxValid(ENDP1);
+		return 1;
+	}
 
-	SetEPTxCount(ENDP1, len);
-	SetEPTxValid(ENDP1);
+	return 0;
+}
+
+void EP1_IN_Callback(void)
+{
+	ep1_in_transferring = EP1_IN_PrepareTX();
 }
 
 void EP3_OUT_Callback(void)
 {
 	uint8_t len = GetEPRxCount(ENDP3);
 	uint16_t d;
-	uint16_t* pma = (uint16_t*)(PMAAddr + (2 * ENDP3_RXADDR));
+	uint32_t* pma = (uint32_t*)(PMAAddr + (2 * ENDP3_RXADDR));
 
 	while( len ) {
 		d = *pma++;
-		pma++;
 		cbuf8_put(&cdc_rxq, d);
 		len--;
 		if( len ) {

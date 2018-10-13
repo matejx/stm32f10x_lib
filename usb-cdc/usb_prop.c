@@ -90,8 +90,8 @@ void DP_Reset(void)
   // Initialize Endpoint 1
   SetEPType(ENDP1, EP_BULK);
   SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-  SetEPTxStatus(ENDP1, EP_TX_NAK);
   SetEPRxStatus(ENDP1, EP_RX_DIS);
+  SetEPTxStatus(ENDP1, EP_TX_NAK);
 
   // Initialize Endpoint 2
   SetEPType(ENDP2, EP_INTERRUPT);
@@ -106,7 +106,7 @@ void DP_Reset(void)
   SetEPRxStatus(ENDP3, EP_RX_VALID);
   SetEPTxStatus(ENDP3, EP_TX_DIS);
 
-  // Set this device to response on default address
+  // Set this device to respond on default address
   SetDeviceAddress(0);
 }
 
@@ -125,11 +125,11 @@ RESULT DP_Data_Setup(uint8_t RequestNo)
   if( Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT) )
   {
     if( (RequestNo == GET_LINE_CODING) || (RequestNo == SET_LINE_CODING) ) {
-	  pInformation->Ctrl_Info.CopyData = CopyData_linecoding;
-	  pInformation->Ctrl_Info.Usb_wOffset = 0;
-	  CopyData_linecoding(0); // sets pInformation->Ctrl_Info.Usb_wLength
+      pInformation->Ctrl_Info.CopyData = CopyData_linecoding;
+      pInformation->Ctrl_Info.Usb_wOffset = 0;
+      CopyData_linecoding(0); // sets pInformation->Ctrl_Info.Usb_wLength
       return USB_SUCCESS;
-	}
+    }
   }
 
   return USB_UNSUPPORT;
