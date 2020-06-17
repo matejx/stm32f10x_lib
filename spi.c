@@ -81,8 +81,9 @@ than low polarity and 1st edge phase. Therefore these parameters are implied and
 words and MSB first.
 @param[in]	devnum		SPI peripheral number (1..2)
 @param[in]	brps		Baudrate prescaler, F_CPU dependent
+@param[in] mode			SPI mode
 */
-void spi_init(uint8_t devnum, uint16_t brps)
+void spi_init(uint8_t devnum, uint16_t brps, uint8_t mode)
 {
 	struct SPI_DevDef* pdef = spi_get_pdef(devnum);
 
@@ -119,7 +120,9 @@ void spi_init(uint8_t devnum, uint16_t brps)
 	sptd.SPI_Mode = SPI_Mode_Master;
 	sptd.SPI_DataSize = SPI_DataSize_8b;
 	sptd.SPI_CPOL = SPI_CPOL_Low;
+	if( mode > 1 ) sptd.SPI_CPOL = SPI_CPOL_High;
 	sptd.SPI_CPHA = SPI_CPHA_1Edge;
+	if( mode & 1 ) sptd.SPI_CPHA = SPI_CPHA_2Edge;
 	sptd.SPI_NSS = SPI_NSS_Soft;
 	sptd.SPI_BaudRatePrescaler = brps;
 	sptd.SPI_FirstBit = SPI_FirstBit_MSB;

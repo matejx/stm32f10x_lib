@@ -34,7 +34,7 @@ void dac_init(uint8_t n)
 
 	DAC_InitTypeDef daci;
 	DAC_StructInit(&daci);
-    DAC_Init(n == 1 ? DAC_Channel_1 : DAC_Channel_2, &daci);
+	DAC_Init(n == 1 ? DAC_Channel_1 : DAC_Channel_2, &daci);
 	DAC_Cmd(n == 1 ? DAC_Channel_1 : DAC_Channel_2, ENABLE);
 
 	GPIO_InitTypeDef iotd;

@@ -10,11 +10,9 @@
 #include <stm32f10x_can.h>
 
 /**
-If defined, implement can_rx_callback(CanRxMsg*) to receive messages (preferred).
+If defined CAN_RX_INT, implement can_rx_callback(CanRxMsg*) to receive messages (preferred).
 If not defined, call can_rx(CanRxMsg*) periodically.
 */
-#define CAN_RX_INT
-
 #ifdef CAN_RX_INT
 /**
 @brief Extern. Implement to receive CAN messages.
@@ -95,15 +93,13 @@ void can_init(uint16_t br, uint8_t md)
 	cnis.CAN_AWUM = DISABLE;
 	cnis.CAN_NART = ENABLE;
 	cnis.CAN_RFLM = DISABLE;
-	cnis.CAN_TXFP = DISABLE;
+	cnis.CAN_TXFP = ENABLE;
 	cnis.CAN_Mode = md;
 	cnis.CAN_SJW = CAN_SJW_1tq;
 	cnis.CAN_BS1 = CAN_BS1_3tq;
 	cnis.CAN_BS2 = CAN_BS2_2tq;
 	cnis.CAN_Prescaler = br;
 	CAN_Init(CAN1, &cnis);
-
-	can_filter(0, 0);
 
 #ifdef CAN_RX_INT
 	// enable RX interrupt
@@ -115,6 +111,16 @@ void can_init(uint16_t br, uint8_t md)
 	ictd.NVIC_IRQChannelSubPriority = 0x0;
 	ictd.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&ictd);
+#endif
+#ifdef CAN_TX_INT
+	CAN_ITConfig(CAN1, CAN_IT_TME, ENABLE);
+
+	NVIC_InitTypeDef ictd2;
+	ictd2.NVIC_IRQChannel = USB_HP_CAN1_TX_IRQn;
+	ictd2.NVIC_IRQChannelPreemptionPriority = 0x0;
+	ictd2.NVIC_IRQChannelSubPriority = 0x0;
+	ictd2.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&ictd2);
 #endif
 }
 
@@ -134,12 +140,6 @@ void can_shutdown(void)
 uint8_t can_tx(CanTxMsg* msg)
 {
 	return CAN_TxStatus_NoMailBox != CAN_Transmit(CAN1, msg);
-/*
-	uint32_t i = 0;
-	while( CAN_TransmitStatus(CAN1, mb) != CAN_TxStatus_Ok ) {
-		if( ++i > 0xffff ) return 1;
-	}
-*/
 }
 
 /**

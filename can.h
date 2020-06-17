@@ -1,7 +1,7 @@
 #ifndef MAT_CAN_H
 #define MAT_CAN_H
 
-// valid for HSE_VALUE 8 MHz
+#if HSE_VALUE == 8000000
 #define CAN_BR_1000 6
 #define CAN_BR_500 12
 #define CAN_BR_250 24
@@ -10,6 +10,7 @@
 #define CAN_BR_50 120
 #define CAN_BR_20 300
 #define CAN_BR_10 600
+#endif
 
 void can_init(uint16_t br, uint8_t md);
 void can_shutdown(void);

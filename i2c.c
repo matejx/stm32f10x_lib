@@ -56,8 +56,8 @@ void i2c_init(uint8_t devnum, const uint32_t clkspd)
 {
 	struct I2C_DevDef* pdef = i2c_get_pdef(devnum);
 
-    // Enable GPIO clocks
-    RCC_APB2PeriphClockCmd(pdef->gpio_clk, ENABLE);
+	// Enable GPIO clocks
+	RCC_APB2PeriphClockCmd(pdef->gpio_clk, ENABLE);
 
 	// I2C1 clock enable
 	RCC_APB1PeriphClockCmd(pdef->i2c_clk, ENABLE);

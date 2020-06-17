@@ -9,7 +9,7 @@
 
 #include <inttypes.h>
 
-void spi_init(uint8_t devnum, const uint16_t brps);
+void spi_init(uint8_t devnum, const uint16_t brps, const uint8_t mode);
 void spi_putc(uint8_t devnum, uint8_t* d);
 void spi_puts(uint8_t devnum, char* s);
 void spi_putsn(uint8_t devnum, char* s, uint16_t n);
