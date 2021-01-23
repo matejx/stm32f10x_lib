@@ -61,7 +61,7 @@ SIZE = arm-none-eabi-size
 
 #########################################################################
 
-all:: $(PROJECT).hex $(PROJECT).bin stats
+all: $(PROJECT).hex $(PROJECT).bin stats
 
 $(PROJECT).bin: $(PROJECT).elf
 #	$(OBJCOPY) -O binary -j .text -j .data $(PROJECT).elf $(PROJECT).bin

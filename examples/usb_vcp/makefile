@@ -2,53 +2,56 @@
 PROJECT=main
 
 # libs dir
-LIBDIR=c:\users\matej\cloudstation\arm\stm32\lib
+LIBDIR=../../..
 
 # STM32 stdperiph lib defines
-CDEFS = -DHSE_VALUE=((uint32_t)8000000) -DSTM32F10X_MD
+CDEFS=-DHSE_VALUE=8000000 -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER
 
 #  List of the objects files to be compiled/assembled
-OBJECTS=main.o $(LIBDIR)\startup_stm32f10x_md.o
+OBJECTS=main.o
 
-STM_SOURCES = \
-$(LIBDIR)\stm32f10x\src\core_cm3.o \
-$(LIBDIR)\stm32f10x\src\system_stm32f10x.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_gpio.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_rcc.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_exti.o \
-$(LIBDIR)\stm32f10x\src\misc.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_usart.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_spi.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_tim.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_i2c.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_adc.o \
-$(LIBDIR)\stm32f10x\src\stm32f10x_dma.o
+CMSIS_SOURCES=\
+$(LIBDIR)/cmsis/startup_stm32f10x_md.o \
+$(LIBDIR)/cmsis/system_stm32f10x.o
 
-USBFS_SOURCES = \
-$(LIBDIR)\stm32usbfs\src\usb_core.o \
-$(LIBDIR)\stm32usbfs\src\usb_init.o \
-$(LIBDIR)\stm32usbfs\src\usb_int.o \
-$(LIBDIR)\stm32usbfs\src\usb_mem.o \
-$(LIBDIR)\stm32usbfs\src\usb_regs.o \
-$(LIBDIR)\stm32usbfs\src\usb_sil.o
+STM_SOURCES=\
+$(LIBDIR)/stm32f10x/src/stm32f10x_gpio.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_rcc.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_exti.o \
+$(LIBDIR)/stm32f10x/src/misc.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_usart.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_spi.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_tim.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_i2c.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_adc.o \
+$(LIBDIR)/stm32f10x/src/stm32f10x_dma.o
 
-USBCDC_SOURCES = \
-$(LIBDIR)\mat\usb-cdc\usb_desc.o \
-$(LIBDIR)\mat\usb-cdc\usb_prop.o \
-$(LIBDIR)\mat\usb-cdc\usb_endp.o \
-$(LIBDIR)\mat\usb-cdc\usb_hwi.o
+USBFS_SOURCES=\
+$(LIBDIR)/stm32usbfs/src/usb_core.o \
+$(LIBDIR)/stm32usbfs/src/usb_init.o \
+$(LIBDIR)/stm32usbfs/src/usb_int.o \
+$(LIBDIR)/stm32usbfs/src/usb_mem.o \
+$(LIBDIR)/stm32usbfs/src/usb_regs.o \
+$(LIBDIR)/stm32usbfs/src/usb_sil.o
+
+USBCDC_SOURCES=\
+$(LIBDIR)/mat/usb-cdc/usb_desc.o \
+$(LIBDIR)/mat/usb-cdc/usb_prop.o \
+$(LIBDIR)/mat/usb-cdc/usb_endp.o \
+$(LIBDIR)/mat/usb-cdc/usb_hwi.o
 
 MAT_SOURCES=\
-$(LIBDIR)\mat\circbuf8.o \
-$(LIBDIR)\mat\itoa.o \
-$(LIBDIR)\mat\serialq.o
+$(LIBDIR)/mat/circbuf8.o \
+$(LIBDIR)/mat/itoa.o \
+$(LIBDIR)/mat/serialq.o
 
+OBJECTS+=$(CMSIS_SOURCES)
 OBJECTS+=$(STM_SOURCES)
 OBJECTS+=$(USBFS_SOURCES)
 OBJECTS+=$(USBCDC_SOURCES)
 OBJECTS+=$(MAT_SOURCES)
 
-LSCRIPT=$(LIBDIR)\stm32_flash.ld
+LSCRIPT=$(LIBDIR)/cmsis/stm32f103x8.ld
 
 OPTIMIZATION = s
 DEBUG = dwarf-2
@@ -59,7 +62,7 @@ GCFLAGS = -g$(DEBUG)
 GCFLAGS += $(CDEFS)
 GCFLAGS += -O$(OPTIMIZATION)
 GCFLAGS += -Wall -std=gnu99 -fno-common -mcpu=cortex-m3 -mthumb
-GCFLAGS += -I$(LIBDIR)\stm32f10x\inc -I$(LIBDIR)\stm32usbfs\inc -I$(LIBDIR)\mat\usb-cdc -I$(LIBDIR) -I.
+GCFLAGS += -I$(LIBDIR)/stm32f10x/inc -I$(LIBDIR) -I$(LIBDIR)/cmsis -I$(LIBDIR)/stm32usbfs/inc -I$(LIBDIR)/mat/usb-cdc
 #GCFLAGS += -Wcast-align -Wcast-qual -Wimplicit -Wpointer-arith -Wswitch
 #GCFLAGS += -Wredundant-decls -Wreturn-type -Wshadow -Wunused
 LDFLAGS = -mcpu=cortex-m3 -mthumb -O$(OPTIMIZATION) -Wl,-Map=$(PROJECT).map -T$(LSCRIPT)
@@ -70,12 +73,12 @@ GCC = arm-none-eabi-gcc
 AS = arm-none-eabi-as
 LD = arm-none-eabi-ld
 OBJCOPY = arm-none-eabi-objcopy
-REMOVE = del
+REMOVE = rm -f
 SIZE = arm-none-eabi-size
 
 #########################################################################
 
-all:: $(PROJECT).hex $(PROJECT).bin stats
+all: $(PROJECT).hex $(PROJECT).bin stats
 
 $(PROJECT).bin: $(PROJECT).elf
 	$(OBJCOPY) -O binary -j .text -j .data $(PROJECT).elf $(PROJECT).bin

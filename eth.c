@@ -1,13 +1,22 @@
 /**
 
-MAC and PHY are configured to 100Mbps, full duplex. RMII interface is implemented.
-The PHY_SR and PHY_SR_100M_FD_MASK are PHY specific and need to be defined for
-your particular PHY. The default is for LAN8720. Reception buffers are implemented
-in eth module. The number and size of rx buffers is configurable with ETH_NUMRXDESC
-and ETH_RXBUFSIZE defines. Receiving a packet returns a pointer to this internal
-buffer which is then owned by the application (unused for reception) until
-eth_rxrelease() is called. For transmission, the buffer is provided by the application.
+RMII interface is implemented between MAC and PHY.
 
+Autonegotiation is used to determine link parameters.
+
+The PHY_SR, PHY_SR_100M and PHY_SR_FD are PHY specific and need to be defined
+for your particular PHY. The default is for LAN8720.
+
+Receiving a packet returns a pointer to an internal buffer which is then owned
+by the application (unavailable for reception) until eth_rxrelease() is called.
+The number and size of rx buffers is configurable with ETH_NUMRXDESC and
+ETH_RXBUFSIZE defines.
+
+The transmit function accepts two buffers. This is for convenience, so the
+application can use separate buffers for the headers and the payload. Both
+buffers are copied to an internal buffer and queued for transmission. If not
+required, either buffer can be empty. The number and size of tx buffers is
+configurable with ETH_NUMTXDESC and ETH_TXBUFSIZE defines.
 
 @file		eth.c
 @brief		ETH MAC routines
@@ -17,6 +26,7 @@ eth_rxrelease() is called. For transmission, the buffer is provided by the appli
 */
 
 #include "stm32f10x.h"
+#include <string.h>
 
 #include "eth_defs.h"
 #include "eth.h"
@@ -24,6 +34,11 @@ eth_rxrelease() is called. For transmission, the buffer is provided by the appli
 #ifndef ETH_NUMTXDESC
 /** Number of TX descriptors to allocate */
 #define ETH_NUMTXDESC 4
+#endif
+
+#ifndef ETH_TXBUFSIZE
+/** Buffer size allocated to each TX descriptor */
+#define ETH_TXBUFSIZE ((uint32_t)520)
 #endif
 
 #ifndef ETH_NUMRXDESC
@@ -64,7 +79,13 @@ typedef struct {
 	uint8_t*   buf2;
 } eth_dmadesc_t;
 
+void eth_dmadesc_size_check(void)
+{
+	switch(0) {case 0: case sizeof(eth_dmadesc_t) == 16:;}
+}
+
 static eth_dmadesc_t eth_txdesc[ETH_NUMTXDESC];
+static uint8_t eth_txbufs[ETH_NUMTXDESC*ETH_TXBUFSIZE];
 static uint8_t eth_curtxdesc;
 
 static eth_dmadesc_t eth_rxdesc[ETH_NUMRXDESC];
@@ -86,13 +107,13 @@ void eth_phywreg(uint16_t a, uint16_t d)
 {
 	ETH->MACMIIDR = d;
 	ETH->MACMIIAR = (PHY_ADDR << 11) | (a << 6) | ETH_MACMIIAR_MW | ETH_MACMIIAR_MB;
-	while( ETH->MACMIIAR & ETH_MACMIIAR_MB ) {}
+	while( ETH->MACMIIAR & ETH_MACMIIAR_MB );
 }
 
 uint16_t eth_phyrreg(uint16_t a)
 {
 	ETH->MACMIIAR = (PHY_ADDR << 11) | (a << 6) | ETH_MACMIIAR_MB;
-	while( ETH->MACMIIAR & ETH_MACMIIAR_MB ) {}
+	while( ETH->MACMIIAR & ETH_MACMIIAR_MB );
 	return ETH->MACMIIDR;
 }
 
@@ -118,7 +139,7 @@ uint8_t eth_init(uint8_t* macaddr)
 	RCC_PREDIV2Config(RCC_PREDIV2_Div5); // 25MHz / 5 = 5MHz
 	RCC_PLL3Config(RCC_PLL3Mul_10); // 5MHz * 10 = 50MHz
 	RCC_PLL3Cmd(ENABLE);
-	while( RCC_GetFlagStatus(RCC_FLAG_PLL3RDY) == RESET ) {}
+	while( RCC_GetFlagStatus(RCC_FLAG_PLL3RDY) == RESET );
 	RCC_MCOConfig(RCC_MCO_PLL3CLK); // output PLL3 clock on MCO (PA8)
 
 	// configure RMII pins
@@ -155,8 +176,8 @@ uint8_t eth_init(uint8_t* macaddr)
 	//eth_phywreg(PHY_BCR, PHY_BCR_100M | PHY_BCR_FULL_DUPLEX); // config PHY to 100Mbps, full duplex
 
 	uint32_t mac_speed = 0;
-	if( (eth_phyrreg(PHY_SR) & PHY_SR_100M) == PHY_SR_100M ) mac_speed |= ETH_MACCR_FES;
-	if( (eth_phyrreg(PHY_SR) & PHY_SR_FD) == PHY_SR_FD ) mac_speed |= ETH_MACCR_DM;
+	if( eth_phyrreg(PHY_SR) & PHY_SR_100M ) mac_speed |= ETH_MACCR_FES;
+	if( eth_phyrreg(PHY_SR) & PHY_SR_FD ) mac_speed |= ETH_MACCR_DM;
 
 	// config MAC to PHY speed, hardware IPV4 CRC checking, auto padding/CRC stripping
 	uint32_t rv = ETH->MACCR & 0xff308103; // read register and keep reserved bits
@@ -178,6 +199,8 @@ uint8_t eth_init(uint8_t* macaddr)
 	// prepare tx descriptors
 	for( i = 0; i < ETH_NUMTXDESC; ++i ) {
 		eth_txdesc[i].stat = 0;
+		eth_txdesc[i].buf2 = (uint8_t*)&eth_txbufs[i*ETH_TXBUFSIZE];
+		eth_txdesc[i].cnt  = ETH_TXBUFSIZE << 16;
 	}
 	eth_curtxdesc = 0;
 	// set DMA tx descriptor list address
@@ -222,9 +245,13 @@ uint8_t eth_txbuf(uint8_t* header, uint32_t headerlen, uint8_t* payload, uint32_
 	uint8_t nexttxdesc = (eth_curtxdesc + 1) % ETH_NUMTXDESC;
 	uint32_t end_of_ring = nexttxdesc ? 0 : ETH_DMATxDesc_TER;
 
-	eth_txdesc[eth_curtxdesc].buf1 = header;
-	eth_txdesc[eth_curtxdesc].buf2 = payload;
-	eth_txdesc[eth_curtxdesc].cnt  = (payloadlen << 16) + headerlen;
+	if( headerlen + payloadlen > ETH_TXBUFSIZE ) {
+		return 2; // packet too large
+	}
+
+	memcpy(eth_txdesc[eth_curtxdesc].buf2, header, headerlen);
+	memcpy(eth_txdesc[eth_curtxdesc].buf2+headerlen, payload, payloadlen);
+	eth_txdesc[eth_curtxdesc].cnt  = (payloadlen + headerlen) << 16;
 	eth_txdesc[eth_curtxdesc].stat = ETH_DMATxDesc_OWN | ETH_DMATxDesc_LS | ETH_DMATxDesc_FS | ETH_DMATxDesc_CIC_TCPUDPICMP_Full | end_of_ring;
 
 	eth_curtxdesc = nexttxdesc;

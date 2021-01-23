@@ -73,7 +73,7 @@ void can_init(uint16_t br, uint8_t md)
 	// configure CAN1 TX pin
 	iotd.GPIO_Pin = GPIO_Pin_9;
 	iotd.GPIO_Mode = GPIO_Mode_AF_PP;
-	iotd.GPIO_Speed = GPIO_Speed_50MHz;
+	iotd.GPIO_Speed = GPIO_Speed_10MHz;
 	GPIO_Init(GPIOB, &iotd);
 
 	// remap CAN1 GPIOs to GPIOB

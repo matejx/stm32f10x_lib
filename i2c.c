@@ -1,6 +1,6 @@
 /**
 @file		i2c.c
-@brief		I2C master routines for
+@brief		I2C master routines
 @author		Matej Kogovsek (matej@hamradio.si)
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
@@ -65,7 +65,7 @@ void i2c_init(uint8_t devnum, const uint32_t clkspd)
 	// I2C1 SDA and SCL configuration
 	GPIO_InitTypeDef iotd;
 	iotd.GPIO_Pin = pdef->pin_sda | pdef->pin_scl;
-	iotd.GPIO_Speed = GPIO_Speed_50MHz;
+	iotd.GPIO_Speed = GPIO_Speed_2MHz;
 	iotd.GPIO_Mode = GPIO_Mode_AF_OD;
 	GPIO_Init(pdef->gpio, &iotd);
 

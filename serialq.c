@@ -84,7 +84,7 @@ void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint16_t tx
 	// GPIO config
 	GPIO_InitTypeDef iotd;
 	iotd.GPIO_Pin = pdef->pin_tx;
-	iotd.GPIO_Speed = GPIO_Speed_50MHz;
+	iotd.GPIO_Speed = GPIO_Speed_2MHz;
 	iotd.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(pdef->gpio, &iotd);
 

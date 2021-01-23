@@ -99,7 +99,7 @@ void spi_init(uint8_t devnum, uint16_t brps, uint8_t mode)
 	GPIO_InitTypeDef iotd;
 
 	iotd.GPIO_Pin = pdef->pin_sck | pdef->pin_mosi;
-	iotd.GPIO_Speed = GPIO_Speed_50MHz;
+	iotd.GPIO_Speed = GPIO_Speed_10MHz;
 	iotd.GPIO_Mode = GPIO_Mode_AF_PP;
 	GPIO_Init(pdef->gpio, &iotd);
 

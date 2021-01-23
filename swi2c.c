@@ -136,7 +136,10 @@ uint8_t swi2c_getc(void)
 void i2c_init(uint8_t devnum, const uint32_t clkspd)
 {
 	DDR(SWI2C_SCL_PORT, SWI2C_SCL_PIN, GPIO_Mode_Out_OD);
+	GPIO_SetBits(SWI2C_SCL_PORT, SWI2C_SCL_PIN);
+
 	DDR(SWI2C_SDA_PORT, SWI2C_SDA_PIN, GPIO_Mode_Out_OD);
+	GPIO_SetBits(SWI2C_SDA_PORT, SWI2C_SDA_PIN);
 }
 
 uint8_t i2c_rd(uint8_t devnum, uint8_t adr, uint8_t* buf, uint32_t len)
