@@ -53,10 +53,12 @@ uint8_t can_filter(uint32_t id, uint32_t msk)
 
 /**
 @brief Init CAN.
-@param[in]	br		Baudrate (possible values defined in header), F_CPU dependent
+@param[in]	brps	Prescaler, PCLK1 dependent
+@param[in]	bs1		BS1 time quanta (1..16)
+@param[in]	bs2		BS2 time quanta (1..8)
 @param[in]	md		Mode (CAN_Mode_Normal, CAN_Mode_Silent, CAN_Mode_LoopBack)
 */
-void can_init(uint16_t br, uint8_t md)
+void can_init(uint16_t brps, uint8_t bs1, uint8_t bs2, uint8_t md)
 {
 	canfilnum = 0;
 
@@ -96,9 +98,9 @@ void can_init(uint16_t br, uint8_t md)
 	cnis.CAN_TXFP = ENABLE;
 	cnis.CAN_Mode = md;
 	cnis.CAN_SJW = CAN_SJW_1tq;
-	cnis.CAN_BS1 = CAN_BS1_3tq;
-	cnis.CAN_BS2 = CAN_BS2_2tq;
-	cnis.CAN_Prescaler = br;
+	cnis.CAN_BS1 = bs1-1;
+	cnis.CAN_BS2 = bs2-1;
+	cnis.CAN_Prescaler = brps;
 	CAN_Init(CAN1, &cnis);
 
 #ifdef CAN_RX_INT
@@ -140,6 +142,15 @@ void can_shutdown(void)
 uint8_t can_tx(CanTxMsg* msg)
 {
 	return CAN_TxStatus_NoMailBox != CAN_Transmit(CAN1, msg);
+}
+
+/**
+@brief Check if CAN TX fifo is full.
+*/
+uint8_t can_tx_full(void)
+{
+	uint32_t m = CAN_TSR_TME0 | CAN_TSR_TME1 | CAN_TSR_TME2;
+	return ((CAN1->TSR & m) == 0);
 }
 
 /**

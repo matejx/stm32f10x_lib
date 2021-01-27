@@ -262,28 +262,28 @@ int ser_printf(const char* s, ...)
 			esc = !esc;
 		} else
 		if( esc ) {
-			switch( *s ) {
-				case 'd':
-				case 'i':
-					ser_puti_lc(devnum, va_arg(vl, int), 10, 0, '0');
-					break;
-				case 'x':
-				case 'X':
-					ser_puti_lc(devnum, va_arg(vl, int), 16, 0, '0');
-					break;
-				case 'f':
-				case 'F':
-					ser_putf(devnum, va_arg(vl, double), 3);
-					break;
-				case 'c':
-					ser_putc(devnum, va_arg(vl, int));
-					break;
-				case 's':
-					ser_puts(devnum, va_arg(vl, char*));
-					break;
-				default:
-					ser_putc(devnum, '?');
-					break;
+			uint8_t w = 1;
+			if( (*s >= '1') && (*s <= '9') ) {
+				w = *s - '0';
+				++s;
+				if( *s == 0 ) break;
+			}
+			if( (*s == 'd') || (*s == 'i') ) {
+				ser_puti_lc(devnum, va_arg(vl, int), 10, w, ' ');
+			} else
+			if( (*s == 'x') || (*s == 'X') ) {
+				ser_puti_lc(devnum, va_arg(vl, int), 16, w, '0');
+			} else
+			if( (*s == 'f') || (*s == 'F') ) {
+				ser_putf(devnum, va_arg(vl, double), w);
+			} else
+			if( *s == 'c' ) {
+				ser_putc(devnum, va_arg(vl, int));
+			} else
+			if( *s == 's' ) {
+				ser_puts(devnum, va_arg(vl, char*));
+			} else {
+				ser_putc(devnum, '?');
 			}
 			esc = 0;
 		} else {

@@ -11,6 +11,7 @@
 #include <inttypes.h>
 
 #include <stm32f10x_gpio.h>
+#include "misc.h"
 
 // ------------------------------------------------------------------
 // --- defines ------------------------------------------------------
@@ -41,21 +42,11 @@ extern void _delay_us(uint32_t); /**< @brief extern */
 // --- private procedures -------------------------------------------
 // ------------------------------------------------------------------
 
-void DDR(GPIO_TypeDef* port, uint16_t pin, uint8_t out)
-{
-	GPIO_InitTypeDef iotd;
-	iotd.GPIO_Pin = pin;
-	iotd.GPIO_Speed = GPIO_Speed_2MHz;
-	iotd.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	if( out ) iotd.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(GPIOC, &iotd);
-}
-
-void lcd_ddir(uint8_t out)
+void lcd_ddir(GPIOMode_TypeDef mode)
 {
 	uint8_t i;
 	for( i = 0; i < 8; ++i ) {
-		DDR(LCD_DATA_PORTS[i], LCD_DATA_BITS[i], out);
+		misc_gpio_config(LCD_DATA_PORTS[i], LCD_DATA_BITS[i], mode);
 	}
 }
 
@@ -82,7 +73,7 @@ void lcd_out(uint8_t data, uint8_t rs)
 {
 	if( rs ) {LCD_RS_1;} else {LCD_RS_0;}	// select instruction(0) or data(1)
 	LCD_RW_0;				// RW low (write)
-	lcd_ddir(1);
+	lcd_ddir(GPIO_Mode_Out_PP);
 	lcd_dout(data);
 	LCD_EN_1;				// E high
 	_delay_us(2);
@@ -93,7 +84,7 @@ void lcd_out(uint8_t data, uint8_t rs)
 // reads instruction or data from LCD
 uint8_t lcd_in(uint8_t rs)
 {
-	lcd_ddir(0);
+	lcd_ddir(GPIO_Mode_IN_FLOATING);
 	lcd_dout(0xff);	// pullups on
 	if( rs ) {LCD_RS_1;} else {LCD_RS_0;}	// select instruction/data
 	LCD_RW_1;		// RW high (read)
@@ -155,11 +146,11 @@ void lcd_hwinit(void)
 	LCD_EN_0;	// idle EN is low
 
 	// configure the 3 LCD control pins as outputs
-	DDR(LCD_RS_PORT, LCD_RS_BIT, 1);
-	DDR(LCD_RW_PORT, LCD_RW_BIT, 1);
-	DDR(LCD_EN_PORT, LCD_EN_BIT, 1);
+	misc_gpio_config(LCD_RS_PORT, LCD_RS_BIT, GPIO_Mode_Out_PP);
+	misc_gpio_config(LCD_RW_PORT, LCD_RW_BIT, GPIO_Mode_Out_PP);
+	misc_gpio_config(LCD_EN_PORT, LCD_EN_BIT, GPIO_Mode_Out_PP);
 
 	// make LCD BL pin an output
-	DDR(LCD_BL_PORT, LCD_BL_BIT, 1);
+	misc_gpio_config(LCD_BL_PORT, LCD_BL_BIT, GPIO_Mode_Out_PP);
 	lcd_bl(0);
 }

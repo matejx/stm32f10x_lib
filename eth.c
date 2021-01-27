@@ -4,7 +4,7 @@ RMII interface is implemented between MAC and PHY.
 
 Autonegotiation is used to determine link parameters.
 
-The PHY_SR, PHY_SR_100M and PHY_SR_FD are PHY specific and need to be defined
+The PHY_SCSR, PHY_SCSR_100M and PHY_SCSR_FD are PHY specific and need to be defined
 for your particular PHY. The default is for LAN8720.
 
 Receiving a packet returns a pointer to an internal buffer which is then owned
@@ -51,12 +51,23 @@ configurable with ETH_NUMTXDESC and ETH_TXBUFSIZE defines.
 #define ETH_RXBUFSIZE ((uint32_t)520) // must be a multiple of 4
 #endif
 
-#ifndef PHY_SR
+#ifndef PHY_SCSR
 /** PHY status register number (not standardized, PHY specific) */
-#define PHY_SR 31
-#define PHY_SR_10M ((uint16_t)0x0004)
-#define PHY_SR_100M ((uint16_t)0x0008)
-#define PHY_SR_FD ((uint16_t)0x0010)
+#define PHY_SCSR 31
+#define PHY_SCSR_10M ((uint16_t)0x0004)
+#define PHY_SCSR_100M ((uint16_t)0x0008)
+#define PHY_SCSR_FD ((uint16_t)0x0010)
+#endif
+
+#ifndef PHY_ISR
+#define PHY_ISR 29
+#define PHY_ISR_ENERGYON ((uint16_t)0x0080)
+#define PHY_ISR_AUTONEGO_COMPLETE ((uint16_t)0x0040)
+#define PHY_ISR_LINKDOWN ((uint16_t)0x0010)
+#endif
+
+#ifndef PHY_IMR
+#define PHY_IMR 30
 #endif
 
 #ifndef PHY_ADDR
@@ -91,17 +102,6 @@ static uint8_t eth_curtxdesc;
 static eth_dmadesc_t eth_rxdesc[ETH_NUMRXDESC];
 static uint8_t eth_rxbufs[ETH_NUMRXDESC*ETH_RXBUFSIZE];
 static uint8_t eth_currxdesc;
-
-void eth_setreg(uint32_t a, uint32_t d)
-{
-	*((__IO uint32_t*)a) = d;
-}
-
-void eth_setmacaddr(uint8_t* a)
-{
-	eth_setreg(ETH_MAC_BASE + 0x40, *(uint32_t*)(a+4) & 0xffff);
-	eth_setreg(ETH_MAC_BASE + 0x44, *(uint32_t*)a);
-}
 
 void eth_phywreg(uint16_t a, uint16_t d)
 {
@@ -171,20 +171,16 @@ uint8_t eth_init(uint8_t* macaddr)
 	eth_phywreg(PHY_BCR, PHY_BCR_RESET); // sw reset PHY
 	_delay_ms(600); // 0.5s for sw reset
 
-	eth_phywreg(PHY_BCR, PHY_BCR_AUTONEGO);
-	while( !(eth_phyrreg(PHY_BSR) & PHY_BSR_AUTONEGO_COMPLETE) );
-	//eth_phywreg(PHY_BCR, PHY_BCR_100M | PHY_BCR_FULL_DUPLEX); // config PHY to 100Mbps, full duplex
-
-	uint32_t mac_speed = 0;
-	if( eth_phyrreg(PHY_SR) & PHY_SR_100M ) mac_speed |= ETH_MACCR_FES;
-	if( eth_phyrreg(PHY_SR) & PHY_SR_FD ) mac_speed |= ETH_MACCR_DM;
-
 	// config MAC to PHY speed, hardware IPV4 CRC checking, auto padding/CRC stripping
 	uint32_t rv = ETH->MACCR & 0xff308103; // read register and keep reserved bits
-	ETH->MACCR = rv | mac_speed | ETH_MACCR_IPCO | ETH_MACCR_APCS;
+	ETH->MACCR = rv | ETH_MACCR_IPCO | ETH_MACCR_APCS;
 
 	//rv = ETH->MACFFR & 0x7ffff800;
 	//ETH->MACFFR = rv | ;
+
+	// set MAC address
+	ETH->MACA0HR = *(uint32_t*)(macaddr+4) & 0xffff;
+	ETH->MACA0LR = *(uint32_t*)macaddr;
 
 	// config DMA to rx tx store and forward
 	rv = ETH->DMAOMR & 0xf8ce1f21;
@@ -193,8 +189,6 @@ uint8_t eth_init(uint8_t* macaddr)
 	// config DMA transfers
 	rv = ETH->DMABMR & 0xfc000080;
 	ETH->DMABMR = rv | ETH_DMABMR_AAB | ETH_DMABMR_PBL_16Beat;
-
-	eth_setmacaddr(macaddr);
 
 	// prepare tx descriptors
 	for( i = 0; i < ETH_NUMTXDESC; ++i ) {
@@ -217,15 +211,64 @@ uint8_t eth_init(uint8_t* macaddr)
 	// set DMA rx descriptor list address
 	ETH->DMARDLAR = (uint32_t)eth_rxdesc;
 
-	// enable MAC tx and rx
-	ETH->MACCR |= (ETH_MACCR_TE | ETH_MACCR_RE);
-
 	// enable DMA tx and rx processes
 	ETH->DMAOMR |= (ETH_DMAOMR_ST | ETH_DMAOMR_SR);
 
-	//ETH_DMAITConfig(ETH_DMA_IT_NIS | ETH_DMA_IT_R, ENABLE);
+	// enable autonego complete PHY interrupts
+	eth_phywreg(PHY_IMR, PHY_ISR_AUTONEGO_COMPLETE);
 
+	// deassert PHY interrupt
+	eth_phyrreg(PHY_ISR);
+
+	// enable autonego
+	eth_phywreg(PHY_BCR, PHY_BCR_AUTONEGO);
+/*
+	while( !(eth_phyrreg(PHY_BSR) & PHY_BSR_AUTONEGO_COMPLETE) );
+
+	if( eth_phyrreg(PHY_SCSR) & PHY_SCSR_100M ) ETH->MACCR |= ETH_MACCR_FES;
+	if( eth_phyrreg(PHY_SCSR) & PHY_SCSR_FD ) ETH->MACCR |= ETH_MACCR_DM;
+
+	// enable MAC tx and rx
+	ETH->MACCR |= (ETH_MACCR_TE | ETH_MACCR_RE);
+*/
 	return 0;
+}
+
+uint16_t eth_phy_int(void)
+{
+	// deassert INT by reading ISR
+	uint16_t isr = eth_phyrreg(PHY_ISR);
+
+	eth_phyrreg(PHY_BSR); // read twice for some reason?
+	uint16_t bsr = eth_phyrreg(PHY_BSR);
+	if( bsr & PHY_BSR_LINK_UP ) {
+		uint16_t scsr = eth_phyrreg(PHY_SCSR);
+		// set MAC speed according to autonego
+		if( scsr & PHY_SCSR_100M ) {
+			ETH->MACCR |= ETH_MACCR_FES;
+		} else {
+			ETH->MACCR &= ~ETH_MACCR_FES;
+		}
+		if( scsr & PHY_SCSR_FD ) {
+			ETH->MACCR |= ETH_MACCR_DM;
+		} else {
+			ETH->MACCR &= ~ETH_MACCR_DM;
+		}
+
+		// enable MAC tx/rx
+		ETH->MACCR |= (ETH_MACCR_TE | ETH_MACCR_RE);
+	}
+
+	return isr;
+}
+
+/**
+@brief	Ask PHY whether link is up
+@return	0 on link down, nonzero on link up
+*/
+uint8_t eth_linkup(void)
+{
+	return (eth_phyrreg(PHY_BSR) & PHY_BSR_LINK_UP);
 }
 
 /**

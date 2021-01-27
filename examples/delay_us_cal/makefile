@@ -24,7 +24,8 @@ $(LIBDIR)/stm32f10x/src/stm32f10x_usart.o
 MAT_SOURCES=\
 $(LIBDIR)/mat/circbuf8.o \
 $(LIBDIR)/mat/itoa.o \
-$(LIBDIR)/mat/serialq.o
+$(LIBDIR)/mat/serialq.o \
+$(LIBDIR)/mat/misc.o
 
 OBJECTS+=$(CMSIS_SOURCES)
 OBJECTS+=$(STM_SOURCES)

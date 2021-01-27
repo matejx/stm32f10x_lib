@@ -7,19 +7,13 @@
 */
 
 #include "stm32f10x.h"
-/*
-#define SDA_PORT GPIOA
-#define SDA_PIN GPIO_Pin_9
+#include "misc.h"
 
-#define SCL_PORT GPIOA
-#define SCL_PIN GPIO_Pin_10
-*/
 #ifndef SWI2C_DELAY_US
 #define SWI2C_DELAY_US 5
 #endif
 
 extern void _delay_us(uint32_t);
-extern void DDR(GPIO_TypeDef*, uint16_t, GPIOMode_TypeDef);
 
 // ------------------------------------------------------------------
 
@@ -135,10 +129,10 @@ uint8_t swi2c_getc(void)
 
 void i2c_init(uint8_t devnum, const uint32_t clkspd)
 {
-	DDR(SWI2C_SCL_PORT, SWI2C_SCL_PIN, GPIO_Mode_Out_OD);
+	misc_gpio_config(SWI2C_SCL_PORT, SWI2C_SCL_PIN, GPIO_Mode_Out_OD);
 	GPIO_SetBits(SWI2C_SCL_PORT, SWI2C_SCL_PIN);
 
-	DDR(SWI2C_SDA_PORT, SWI2C_SDA_PIN, GPIO_Mode_Out_OD);
+	misc_gpio_config(SWI2C_SDA_PORT, SWI2C_SDA_PIN, GPIO_Mode_Out_OD);
 	GPIO_SetBits(SWI2C_SDA_PORT, SWI2C_SDA_PIN);
 }
 
