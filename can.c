@@ -108,7 +108,11 @@ void can_init(uint16_t brps, uint8_t bs1, uint8_t bs2, uint8_t md)
 	CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
 
 	NVIC_InitTypeDef ictd;
+#ifdef STM32F10X_CL
+  ictd.NVIC_IRQChannel = CAN1_RX0_IRQn;
+#else
 	ictd.NVIC_IRQChannel = USB_LP_CAN1_RX0_IRQn;
+#endif
 	ictd.NVIC_IRQChannelPreemptionPriority = 0x0;
 	ictd.NVIC_IRQChannelSubPriority = 0x0;
 	ictd.NVIC_IRQChannelCmd = ENABLE;
@@ -118,7 +122,11 @@ void can_init(uint16_t brps, uint8_t bs1, uint8_t bs2, uint8_t md)
 	CAN_ITConfig(CAN1, CAN_IT_TME, ENABLE);
 
 	NVIC_InitTypeDef ictd2;
+#ifdef STM32F10X_CL
+	ictd2.NVIC_IRQChannel = CAN1_TX_IRQn;
+#else
 	ictd2.NVIC_IRQChannel = USB_HP_CAN1_TX_IRQn;
+#endif
 	ictd2.NVIC_IRQChannelPreemptionPriority = 0x0;
 	ictd2.NVIC_IRQChannelSubPriority = 0x0;
 	ictd2.NVIC_IRQChannelCmd = ENABLE;
@@ -172,7 +180,11 @@ uint8_t can_rx(CanRxMsg* msg)
 /** @privatesection */
 
 #ifdef CAN_RX_INT
+#ifdef STM32F10X_CL
+void CAN1_RX0_IRQHandler(void)
+#else
 void USB_LP_CAN1_RX0_IRQHandler(void)
+#endif
 {
 	CanRxMsg rxmsg;
 	CAN_Receive(CAN1, CAN_FIFO0, &rxmsg);
@@ -182,8 +194,11 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 
 #ifdef CAN_TX_INT
 extern void can_tx_callback(void);
-
+#ifdef STM32F10X_CL
+void CAN1_TX0_IRQHandler(void)
+#else
 void USB_HP_CAN1_TX_IRQHandler(void)
+#endif
 {
 	can_tx_callback();
 }

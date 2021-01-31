@@ -17,3 +17,8 @@ uint16_t udp_pkt_len(udp_header_t* udph)
 {
 	return __builtin_bswap16(udph->len);
 }
+
+uint16_t udp_payload_len(udp_header_t* udph)
+{
+	return udp_pkt_len(udph) - sizeof(udp_header_t);
+}

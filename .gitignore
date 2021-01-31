@@ -1,0 +1,11 @@
+doxygen
+*.o
+*.d
+*.lst
+*.map
+*.sym
+*.eep
+*.lss
+*.elf
+*.hex
+*.bin

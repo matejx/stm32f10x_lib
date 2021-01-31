@@ -19,32 +19,20 @@ $(LIBDIR)/stm32f10x/src/stm32f10x_gpio.o \
 $(LIBDIR)/stm32f10x/src/stm32f10x_rcc.o \
 $(LIBDIR)/stm32f10x/src/stm32f10x_exti.o \
 $(LIBDIR)/stm32f10x/src/misc.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_usart.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_spi.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_tim.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_i2c.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_adc.o
+$(LIBDIR)/stm32f10x/src/stm32f10x_usart.o
 
 MAT_SOURCES=\
-$(LIBDIR)/mat/adc.o \
 $(LIBDIR)/mat/circbuf8.o \
 $(LIBDIR)/mat/cmt.o \
-$(LIBDIR)/mat/ee_24.o \
-$(LIBDIR)/mat/ee_95.o \
-$(LIBDIR)/mat/fls_25.o \
-$(LIBDIR)/mat/hmc5883l.o \
-$(LIBDIR)/mat/i2c.o \
 $(LIBDIR)/mat/itoa.o \
-$(LIBDIR)/mat/lcd.o \
-$(LIBDIR)/mat/lcd_io.o \
 $(LIBDIR)/mat/serialq.o \
-$(LIBDIR)/mat/spi.o
+$(LIBDIR)/mat/misc.o
 
 OBJECTS+=$(CMSIS_SOURCES)
 OBJECTS+=$(STM_SOURCES)
 OBJECTS+=$(MAT_SOURCES)
 
-LSCRIPT=$(LIBDIR)/cmsis/stm32f100xb.ld
+LSCRIPT=stm32f100xb.ld
 
 OPTIMIZATION = s
 DEBUG = dwarf-2

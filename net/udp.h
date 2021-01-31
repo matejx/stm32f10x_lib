@@ -14,5 +14,6 @@ typedef struct __attribute__((__packed__)) {
 
 uint8_t udp_make_hdr(udp_header_t* udph, uint16_t srcport, uint16_t dstport, uint16_t len);
 uint16_t udp_pkt_len(udp_header_t* udph);
+uint16_t udp_payload_len(udp_header_t* udph);
 
 #endif

@@ -20,28 +20,19 @@ $(LIBDIR)/stm32f10x/src/stm32f10x_rcc.o \
 $(LIBDIR)/stm32f10x/src/stm32f10x_exti.o \
 $(LIBDIR)/stm32f10x/src/misc.o \
 $(LIBDIR)/stm32f10x/src/stm32f10x_usart.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_spi.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_tim.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_i2c.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_adc.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_can.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_flash.o \
-$(LIBDIR)/stm32f10x/src/stm32f10x_iwdg.o
+$(LIBDIR)/stm32f10x/src/stm32f10x_adc.o
 
 MAT_SOURCES=\
 $(LIBDIR)/mat/circbuf8.o \
 $(LIBDIR)/mat/itoa.o \
 $(LIBDIR)/mat/serialq.o \
-$(LIBDIR)/mat/spi.o \
-$(LIBDIR)/mat/i2c.o \
-$(LIBDIR)/mat/adc.o \
-$(LIBDIR)/mat/can.o
+$(LIBDIR)/mat/adc.o
 
 OBJECTS+=$(CMSIS_SOURCES)
 OBJECTS+=$(STM_SOURCES)
 OBJECTS+=$(MAT_SOURCES)
 
-LSCRIPT=$(LIBDIR)/cmsis/stm32f103x8.ld
+LSCRIPT=stm32f103x8.ld
 
 OPTIMIZATION = s
 DEBUG = dwarf-2
