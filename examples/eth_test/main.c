@@ -75,14 +75,14 @@ static const uint16_t NOETHRX_TO = (60*60);
 static const uint8_t* UNIQUE_DEVICE_ID_ADDR = (uint8_t*)(0x1ffff7e8);
 static const uint8_t UNIQUE_DEVICE_ID_LEN = 12;
 
-static const uint16_t LM_CAN = 0x01;
+static const uint16_t LM_ERROR = 0x01;
 static const uint16_t LM_ETH = 0x02;
 static const uint16_t LM_IPV4 = 0x04;
 static const uint16_t LM_UDP = 0x08;
 static const uint16_t LM_TCP = 0x10;
 static const uint16_t LM_ICMP = 0x20;
 static const uint16_t LM_PHY = 0x40;
-static const uint16_t LM_DNS = 0x80;
+static const uint16_t LM_ARP = 0x80;
 
 static const uint8_t ENOARP = 100;
 static const uint8_t ENOGW = 101;
@@ -119,7 +119,7 @@ void full_icmp_header_size_check(void)
 
 static volatile uint32_t uptime;
 static volatile uint32_t lastethrx;
-static uint16_t logmask = 0xffff;
+static uint16_t logmask;
 
 static uint8_t uart1rxbuf[32];
 static uint8_t uart1txbuf[64];
@@ -267,7 +267,8 @@ void printippkt(ipv4_header_t* p)
 //  utility functions
 //-----------------------------------------------------------------------------
 
-uint32_t udtoi(const char* s) {	// unsigned decimal string to u32
+uint32_t udtoi(const char* s) // unsigned decimal string to u32
+{
 	uint32_t x = 0;
 
 	while( isdigit((int)*s) ) {
@@ -470,6 +471,7 @@ uint8_t proc_at_cmd(const char* s)
 		for( i = 0; i < 32; ++i ) {
 			if( (i>6)&&(i<17) ) continue;
 			if( (i>18)&&(i<26) ) continue;
+			if( i == 28 ) continue;
 			uint16_t r = eth_phyrreg(i);
 			ser_printf("%2d %4x\r\n", i, r);
 		}
@@ -628,6 +630,8 @@ int main(void)
 	IWDG_ReloadCounter();
 	IWDG_Enable();
 
+	logmask = 0xffff;
+
 	ser_init(AT_CMD_UART, AT_CMD_BAUD, uart1txbuf, sizeof(uart1txbuf), uart1rxbuf, sizeof(uart1rxbuf));
 	ser_printf_devnum = AT_CMD_UART;
 	ser_printf("reset\r\n");
@@ -699,11 +703,18 @@ int main(void)
 					// received frame contains an ARP packet
 					arp_packet_t* arp = (arp_packet_t*)p;
 
-					arp_process_reply(arp, myip);
+					if( arp_process_reply(arp, myip) ) {
+						if( logmask & LM_ARP ) {
+							ser_printf("ARP got reply from %s\r\n", iptoa(arp->sender_padr));
+						}
+					} else
 					if( arp_process_request(arp, myip, mymac) ) {
 						memcpy(hdr->dmac, arp->target_hadr, 6);
 						memcpy(hdr->smac, arp->sender_hadr, 6);
 						eth_txbuf((uint8_t*)hdr, sizeof(eth_header_t), (uint8_t*)arp, sizeof(arp_packet_t));
+						if( logmask & LM_ARP ) {
+							ser_printf("ARP replied to %s\r\n", iptoa(arp->target_padr));
+						}
 					}
 				} else
 				if( hdr->etype == __builtin_bswap16(IPV4_ETYPE) ) {
@@ -798,6 +809,9 @@ int main(void)
 				if( !arp_find_entry(ip, 0) ) {
 					arp_request_send(ip);
 					tmr_reset(TMR_ID_ARP_REQ);
+					if( logmask & LM_ARP ) {
+						ser_printf("ARP sent req for %s\r\n", iptoa(ip));
+					}
 				}
 			}
 		}

@@ -33,17 +33,17 @@ configurable with ETH_NUMTXDESC and ETH_TXBUFSIZE defines.
 
 #ifndef ETH_NUMTXDESC
 /** Number of TX descriptors to allocate */
-#define ETH_NUMTXDESC 4
+#define ETH_NUMTXDESC 8
 #endif
 
 #ifndef ETH_TXBUFSIZE
 /** Buffer size allocated to each TX descriptor */
-#define ETH_TXBUFSIZE ((uint32_t)520)
+#define ETH_TXBUFSIZE ((uint32_t)520) // must be a multiple of 4
 #endif
 
 #ifndef ETH_NUMRXDESC
 /** Number of RX descriptors to allocate */
-#define ETH_NUMRXDESC 4
+#define ETH_NUMRXDESC 8
 #endif
 
 #ifndef ETH_RXBUFSIZE
@@ -95,13 +95,13 @@ void eth_dmadesc_size_check(void)
 	switch(0) {case 0: case sizeof(eth_dmadesc_t) == 16:;}
 }
 
-static eth_dmadesc_t eth_txdesc[ETH_NUMTXDESC];
-static uint8_t eth_txbufs[ETH_NUMTXDESC*ETH_TXBUFSIZE];
-static uint8_t eth_curtxdesc;
+static eth_dmadesc_t eth_txdesc[ETH_NUMTXDESC] __attribute__ ((aligned(4)));
+static uint8_t eth_txbufs[ETH_NUMTXDESC*ETH_TXBUFSIZE] __attribute__ ((aligned(4)));
+static uint16_t eth_curtxdesc;
 
-static eth_dmadesc_t eth_rxdesc[ETH_NUMRXDESC];
-static uint8_t eth_rxbufs[ETH_NUMRXDESC*ETH_RXBUFSIZE];
-static uint8_t eth_currxdesc;
+static eth_dmadesc_t eth_rxdesc[ETH_NUMRXDESC] __attribute__ ((aligned(4)));
+static uint8_t eth_rxbufs[ETH_NUMRXDESC*ETH_RXBUFSIZE] __attribute__ ((aligned(4)));
+static uint16_t eth_currxdesc;
 
 void eth_phywreg(uint16_t a, uint16_t d)
 {
