@@ -22,7 +22,7 @@ current task's control), mutex functions are implemented for convenience (and be
 
 @file		cmt.c
 @brief		Simple cooperative "on-delay" multitasking
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 */

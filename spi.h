@@ -1,9 +1,3 @@
-// ------------------------------------------------------------------
-// --- spi.h - Basic routines for sending data over SPI           ---
-// ---                                                            ---
-// ---            24.jul.2013, Matej Kogovsek (matej@hamradio.si) ---
-// ------------------------------------------------------------------
-
 #ifndef MAT_SPI_H
 #define MAT_SPI_H
 

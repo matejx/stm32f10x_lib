@@ -33,7 +33,7 @@ void cdc_tx(void)
 	EP1_IN_PrepareTX();
 }
 
-void cdc_putc_(char a)
+void cdc_putc_(const char a)
 {
 	while( 1 ) {
 		if( cbuf8_put(&cdc_txq, a) ) {
@@ -44,26 +44,26 @@ void cdc_putc_(char a)
 	}
 }
 
-void cdc_putc(char a)
+void cdc_putc(const char a)
 {
 	cdc_putc_(a);
 	cdc_tx();
 }
 
-void cdc_putsn(char* s, uint8_t n)
+void cdc_putsn(const char* s, uint8_t n)
 {
 	while( n-- ) {
 		cdc_putc_(*s);
-		s++;
+		++s;
 	}
 	cdc_tx();
 }
 
-void cdc_puts(char* s)
+void cdc_puts(const char* s)
 {
 	while( *s )	{
 		cdc_putc_(*s);
-		s++;
+		++s;
 	}
 	cdc_tx();
 }

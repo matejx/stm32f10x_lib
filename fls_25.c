@@ -1,7 +1,7 @@
 /**
 @file		fls_25.c
 @brief		Spansion S25FL SPI flash routines
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 @note		Tested with S25FL208 1Mbyte flash. Likely works with other densities and other manufacturers' x25 serial flash chips.

@@ -1,9 +1,3 @@
-// ------------------------------------------------------------------
-// --- eth.c - basic routines for sending data over ETH MAC       ---
-// ---                                                            ---
-// ---            06.jun.2020, Matej Kogovsek (matej@hamradio.si) ---
-// ------------------------------------------------------------------
-
 #ifndef MAT_ETH_H
 #define MAT_ETH_H
 

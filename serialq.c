@@ -5,7 +5,7 @@ Data to be transmitted is likewise put into a FIFO. Memory for both FIFOs is pro
 
 @file		serialq.c
 @brief		Buffered USART routines
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 */
@@ -114,7 +114,7 @@ void ser_init(const uint8_t devnum, const uint32_t br, uint8_t* txb, uint16_t tx
 */
 void ser_shutdown(const uint8_t devnum)
 {
-	// TBI
+	//USART_DeInit();
 }
 
 /**
@@ -162,7 +162,7 @@ void ser_putc(const uint8_t devnum, const char a)
 
 	USART_ITConfig(usart_get_pdef(devnum)->usart, USART_IT_TXE, ENABLE); // enable data register empty interrupt
 /*
-	struct USART_DevDef* pdef = usart_get_pdef(n);
+	struct USART_DevDef* pdef = usart_get_pdef(devnum);
 
 	while( RESET == USART_GetFlagStatus(pdef->usart, USART_FLAG_TXE) ) {}
 
@@ -189,7 +189,7 @@ void ser_puts(const uint8_t devnum, const char* s)
 @param[in]	s			String, zeros are sent as spaces
 @param[in]	n			Number of chars to send
 */
-void ser_putsn(const uint8_t devnum, const char* s, uint8_t n)
+void ser_putsn(const uint8_t devnum, const char* s, uint16_t n)
 {
 	while( n-- ) {
 		if( *s ) {

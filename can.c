@@ -1,7 +1,7 @@
 /**
 @file		can.c
 @brief		CAN bus routines
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 */

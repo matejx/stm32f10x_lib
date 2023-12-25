@@ -1,7 +1,7 @@
 /**
 @file		lcd_io.c
 @brief		HD44780 via IO pins, 8 bit (low level)
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 @note		Implements low level functions required by lcd.c

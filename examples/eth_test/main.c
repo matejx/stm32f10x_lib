@@ -18,7 +18,7 @@ A list of supported AT commands can be requested by issuing "AT?".
 
 @file		main.c
 @brief		eth test
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 */

@@ -1,7 +1,7 @@
 /**
 @file		swi2c.c
 @brief		Bitbang I2C master routines
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 */
@@ -139,7 +139,10 @@ void i2c_init(uint8_t devnum, const uint32_t clkspd)
 uint8_t i2c_rd(uint8_t devnum, uint8_t adr, uint8_t* buf, uint32_t len)
 {
 	swi2c_start();
-	swi2c_putc(adr | 1);
+	if( swi2c_putc(adr | 1) ) {
+		swi2c_stop();
+		return 1;
+	}
 	for( uint8_t i = 0; i < len; ++i ) {
 		buf[i] = swi2c_getc();
 	}
@@ -151,7 +154,10 @@ uint8_t i2c_rd(uint8_t devnum, uint8_t adr, uint8_t* buf, uint32_t len)
 uint8_t i2c_wr(uint8_t devnum, uint8_t adr, const uint8_t* buf, uint32_t len)
 {
 	swi2c_start();
-	swi2c_putc(adr & 0xfe);
+	if( swi2c_putc(adr & ~1) ) {
+		swi2c_stop();
+		return 1;
+	}
 	for( uint8_t i = 0; i < len; ++i ) {
 		swi2c_putc(buf[i]);
 	}

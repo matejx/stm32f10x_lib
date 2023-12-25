@@ -1,7 +1,7 @@
 /**
 @file		ee_95.c
 @brief		ST95P08 EEPROM routines
-@author		Matej Kogovsek (matej@hamradio.si)
+@author		Matej Kogovsek
 @copyright	LGPL 2.1
 @note		This file is part of mat-stm32f1-lib
 @note		Written for ST95P08. Compatibility with other SPI EE devices unknown.

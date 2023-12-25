@@ -5,9 +5,9 @@
 
 void cdc_init(uint8_t* txb, uint16_t txs, uint8_t* rxb, uint16_t rxs);
 
-void cdc_putc(char a);
-void cdc_puts(char* s);
-void cdc_putsn(char* s, uint8_t n);
+void cdc_putc(const char a);
+void cdc_puts(const char* s);
+void cdc_putsn(const char* s, uint8_t n);
 void cdc_puti_lc(const int32_t a, const uint8_t r, uint8_t w, char c);
 void cdc_putf(float f, uint8_t prec);
 #define cdc_puti(a, b) cdc_puti_lc(a, b, 0, 'x')
